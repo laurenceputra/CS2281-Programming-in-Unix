@@ -1,0 +1,374 @@
+<html><head>
+<meta http-equiv="content-type" content="text/html; charset=ISO-8859-1"><style>
+.code {
+	background-color:#eeeeee;
+	padding: 5 5 5 5;
+}
+</style>
+</head><body><h1>CS2281 Lab 1: Code Generator (Graded)</h1>
+
+<p>In this assignment, you will write C programs which produce another C
+ program as the output. The example below illustrates what it means by 
+producing another C program. As both your program and the output are 
+legal C programs, 
+we will call the program you write as "<i>yourprog</i>" and 
+the output of your program as "<i>outputcode</i>".</p>
+
+<p>For example, consider the task of writing a program which reads an 
+integer N and produces another C program which will write a line 
+containing the '*' character for N times.
+
+</p><p>
+A possible solution is:
+</p><pre class="code">#include &lt;stdio.h&gt;
+int main() {
+  int N, i;
+  scanf( "%d", &amp;N );
+  printf( "#include &lt;stdio.h&gt;\n" );
+  printf( "int main() {\n" );
+  for ( i = 0; i &lt; N; i++ ) printf( "  printf(\"*\");\n" );
+  printf( "  printf(\"\\n\");\n" );
+  printf( "  return 0;\n" );
+  printf( "}\n" );
+  return 0;
+}
+</pre>
+
+Given the following input:
+<pre class="code">4</pre>
+
+A possible output, the <i>outputcode</i> is:
+<pre class="code">#include &lt;stdio.h&gt;
+int main() {
+  printf( "*" );
+  printf( "*" );
+  printf( "*" );
+  printf( "*" );
+  printf( "\n" );
+  return 0;
+}</pre>
+
+Compiling and running outputcode gives:
+<pre class="code">****</pre>
+
+Any generated C code is accepted as long as it compiles without errors.
+In addition, it <b>must</b> follow constraints given in the rules below. 
+Different strategies or algorithms can be used, for example,
+another possible outputcode is:
+<pre class="code">#include &lt;stdio.h&gt;
+int main() {
+  printf( "****\n" );
+  return 0;
+}</pre>
+
+<p>Note that the outputcode shown above is quite simple, it has no input and has only performs output using <tt>printf()</tt>. 
+In other parts of this lab, the outputcode may need input (e.g., using scanf).
+</p><p>
+You should end <tt>main()</tt> with
+<tt>return 0</tt> - we will explain why in later lectures, for now,
+just follow this structure.
+You can also read ahead in the notes, <a href="http://www.comp.nus.edu.sg/%7Ecs2281/Notes/clib.pdf">C library (clib)</a>, for
+more on the input and output libraries.
+
+</p><p>
+The generated C code, <i>outputcode</i>, must obey the following rules.
+</p><ul>
+<li>The generated C code should be legal C.
+</li><li>It must be compilable by the <tt>gcc</tt> C compiler without any errors.
+Warnings messages from <tt>gcc</tt> are considered allowable.
+</li><li>The C code in <i>outputcode</i> is
+<font color="RED"><b>NOT</b></font> allowed
+to have any repetition constructs (for, while, do while, etc) and
+goto statement(s). Recursion is not allowed but function calls without
+recursion are legal.
+</li><li> The only functions not in your code which can be used are the following
+library functions:
+<tt>printf()</tt>, <tt>puts()</tt>, <tt>putchar()</tt> and <tt>scanf()</tt>.
+(Note that you do not need to use <tt>puts()</tt> or <tt>putchar()</tt>
+and they are allowed just in case students want to also use those).
+</li></ul>
+Essentially the rules mean that your program consists of straightline code
+which can also have <tt>if</tt> statements and the only library functions
+which can be used are for output, e.g. <tt>printf()</tt>, and for input,
+e.g. <tt>scanf()</tt>. Thus, <tt>qsort()</tt> is not allowed.
+
+<p> 
+You can think of <i>your program</i> as a special kind of compiler which
+generates a kind of optimized code, namely, the <i>outputcode</i>.
+The <i>outputcode</i> is a C program tailored for a specific problem instance,
+e.g. sum 10 numbers rather than sum <i>n</i> numbers.
+
+</p><p>
+
+</p><h3>How to Test Your Generated C Code</h3>
+You can test your program by redirecting the output to a C file, and then compile and run it.
+
+<pre>$ gcc code.c               # Assumes your program is code.c and generates a.out
+$ ./a.out &gt; output.c       # Any output from a.out (your program compiled into an executable) is redirected to output.c
+                           # You may be able to use a.out as well depending on your environment PATH variable
+4                          # This is input for a.out program (read from standard input)
+                           # output.c is generated containing your output C code
+$ gcc output.c -o output   # Compile output.c
+$ ./output                 # Run it.
+****                       # This is the output for the output C code.
+</pre>
+
+<p>
+Similarly, you can redirect input from a data file:
+</p><pre>$ ./output &lt; test1.dat &gt; result.txt
+</pre>
+By default, redirecting output in the <tt>bash</tt> shell will not 
+overwrite an existing file, giving an error.
+To redirect and overwrite an existing file, use:
+<pre>$ ./output &lt; test1.dat &gt;| old-result.txt
+</pre>
+
+<p>
+To try out what we discussed on the Wed 30/1 lecture, here are some exercises.
+Compile <a href="http://www.comp.nus.edu.sg/%7Ecs2281/Labs/lab1-redirect.c">lab1-redirect.c</a> and I will assume
+it is called <tt>a.out</tt>. For the moment, we have not covered the C library
+yet but just assume that the line which says <tt>stdout</tt> has the output
+going to the <i>standard output</i> and similarly the line
+with <tt>stderr</tt> has its output going to
+<i>standard error</i>. 
+
+</p><p>
+</p><pre class="code">$ a.out
+$ a.out 1
+$ a.out 1 &gt; file1
+$ a.out 1 2&gt; file2
+$ a.out 1 &amp;&gt; file3
+</pre>
+<p>
+The reason for the above syntax will be clearer after we do Unix file I/O.
+(<i>Hint: it is to do with file descriptors</i>).
+Compare the different files. If you do not want <tt>bash</tt> to complain
+about overwriting files. You can turn off the error with:
+</p><pre>set +o noclobber
+</pre>
+This is a bash shell option - the noclobber refers to "not clobbering the file".
+
+<p>
+</p><h3>Motivation</h3>
+<p>
+Students may find this lab to be somewhat unusual as you may not be familiar
+with the idea of a program which itself generates another program.
+However, all compilers perform some form of this idea.
+The first C++ compiler also worked in a similar way - it
+compiled from C++ source code to C source code.
+</p><p>
+From the perspective of CS2281, the purpose of Lab 1 is as follows:
+</p><ul>
+<li> Become familiar with compiling C
+</li><li> Become familiar with C syntax by generating C code (the outputcode)
+</li><li> Appreciate the function of the C compiler (or any other compiler)
+</li></ul>
+
+Note that since you will be generating C code, you may find that more
+work is needed to understand the output which is itself a C program.
+To simplify things, you may want to output the code so that it is
+properly formatted, i.e. rather than having it all on a single line.
+Be careful that testing and debugging may be needed on both programs:
+<i>yourprog</i>
+and also <i>outputcode</i>.
+
+<h2>Part 1: Drawing a Triangle (20 points)</h2>
+
+<p>
+We start with a basic task.
+Write a program which reads an integer, N, from standard input (stdin) 
+and output a C program (output C code) to standard output (stdout) which
+ will draw a 
+right angled triangle filled in by '<tt>*</tt>' characters
+whose two short sides have size N.</p>
+
+<strong>Input Specification</strong><br>
+<p>The input is a line with an integer N.</p>
+
+<strong>Output Specification</strong><br>
+<p>The output is a C program which draws a solid triangle using '<tt>*</tt>'
+whose vertical and horizontal side has N characters (see the example below).</p>
+
+<strong>Constraints:</strong><br>
+<p>Your program should be able to handle N in range: 1 &#8804; N &#8804; 10.</p>
+
+<strong>Example Sample Input:</strong><br>
+<pre>3</pre>
+
+<strong>Example Output for Sample Input:</strong><br>
+<pre>#include &lt;stdio.h&gt;
+int main() {
+  printf( "*\n" ); // puts( "*" ); /* also valid */
+  printf( "**\n" );
+  printf( "***\n" );
+  return 0;
+}
+</pre>
+Notice the shape of the triangle.
+
+<p>
+<strong>Hints</strong><br>
+</p><ul>
+<li> Formatted output in C is usually through the <tt>printf()</tt> function.
+While we will cover the details later, the lecture notes examples as well
+as the ones here should already serve to illustrate simple usage of
+<tt>printf()</tt>. However, <tt>printf()</tt> can produce more complex
+formatted output.
+</li><li> If you know Java, <tt>printf()</tt> is almost the same as
+<tt>System.out.printf()</tt>.
+</li><li> For Part 1, you can also use <tt>puts()</tt> as an alternative
+to <tt>printf()</tt> (see the man page, puts(3C) )
+</li><li> Note the use of backslash within the <tt>printf()</tt> format string
+</li><li> By default, the output of <tt>printf()</tt> goes to standard output (stdout)
+</li></ul>
+
+<h2>Part 2: Number Series (80 points)</h2>
+
+<p>
+First some background on number series.
+An <a href="http://en.wikipedia.org/wiki/Arithmetic_progression">arithmetic progression</a> 
+is a series of numbers where
+the difference between consecutive terms in the series is a constant, e.g.
+</p><pre>1, 3, 5, 7, 9, ...
+</pre>
+A <a href="http://en.wikipedia.org/wiki/Geometric_progression">geometric progression</a> 
+is a series of numbers where
+the ratio between consecutive terms in the series is a non-zero constant, e.g.
+<pre>3, 6, 12, 24, 48, ...
+</pre>
+
+<p>Write a program which will read an integer N from standard input (stdin) 
+and generate a C program <i>outputcode</i> to standard output (stdout) 
+which will read N integers.
+The N numbers correspond to either an arithmetic or geometric progression. 
+Your outputcode has to determine which one and then print the next two terms 
+in the series which is consistent with the input series.
+
+</p><p>
+<strong>Input Specification</strong><br>
+</p><p>The input is a line with integer N.</p>
+
+<strong>Output Specification</strong><br>
+<p>The output is C code which will read N integers from standard input and 
+output the next <b>two</b> consecutive terms in the series which may be either arithmetic
+or geometric. The choice of which output depends on whether numbers input
+were part of an arithmetic or geometric progression.
+
+</p><p>
+<strong>Constraints:</strong><br>
+</p><ul>
+<li>Your program should be able to handle input N in range: 3 &#8804; N &#8804; 10.</li>
+<li>Your <i>output C code</i> should be able to handle signed integers in
+the input: -32768..32767</li>
+</ul>
+
+<strong>Example Sample Input to</strong> <i>yourprogr</i>:<br>
+<pre class="code">4</pre>
+
+<strong>Example Sample Input to</strong> <i>outputcode</i>:<br>
+<pre class="code">1 3 5 7</pre>
+
+<strong>Example Output from running:</strong> <i>outputcode</i><br>
+<pre class="code">9 11</pre>
+
+<p>
+Note that the output of <i>original program</i> is not shown.
+This is because it will also reveal the algorithm used in <i>your program</i>.
+
+</p><p>
+<strong>Hints and Notes</strong><br>
+</p><ul>
+<li> You can assume the series is either a proper arithmetic or a proper geometric series.
+</li><li> A sample program which does input and output: 
+<a href="http://www.comp.nus.edu.sg/%7Ecs2281/Labs/lab1-IOeg.c">lab1-IOeg.c</a>. 
+Notice the use of '<tt>&amp;</tt>' which is
+is used to pass the address of the variable
+to <tt>scanf()</tt> (see lecture c-part2).
+If we have not finished covering the address operator, just use the example
+as a template, which should be straightforward even without understanding
+all the details. Be careful that omitting the ampersand is not only buggy
+but can lead to runtime exceptions, e.g. <tt>segmentation fault</tt>.
+</li><li>As mentioned before, the output C code must comply with the rules.
+</li><li>You may use any variable name in the output C code.
+</li><li> In order to output '<tt>%</tt>' in the <tt>printf()</tt> format
+string, it needs to be escaped, e.g. <tt>printf( "%% %%" )</tt>
+outputs "<tt>% %</tt>"
+</li><li> Arrays are not necessary but can be used. 
+	Note that no loops are allowed in the <i>outputcode</i> C program.
+</li></ul>
+
+<h2>Part 3: Finding the Median (Optional part, Bonus: 15 Marks)</h2>
+
+<p>
+This program is optional and it should only be submitted once you have Part 1
+and 2 working. Note that part 1 and 2 already add up to 100%.
+So the optional part is for students who like to do more programming.
+Bonus marks can be used to compensate for any errors in the lab, e.g.
+suppose part 1 and 2 was marked at 20 and 75 marks respectively while the
+optional part 3 was marked at 8 marks. This means that the lab total is
+100 marks with 3 leftover bonus marks to be used elsewhere.
+
+</p><p>
+The task here is to compute the <a href="http://en.wikipedia.org/wiki/Median">median</a> of N input numbers.
+In part 3, we assume that N is an odd number (the even case can be handled
+but with more work).
+Roughly speaking, the median of N numbers can be obtained by sorting them
+and picking the middle number. For example, consider the numbers
+</p><pre class="code">5 7 2 3 10</pre>
+The median is 5.
+You can then see that the median is the (N+1)/2 largest number in the input.
+Take note while sorting is used, it is not essential and there are a
+number of possible algorithms which do less work than sorting.
+
+<p>
+<strong>Input Specification</strong><br>
+</p><p>The input is a single line contains an integer N which is
+an odd number.</p>
+
+<strong>Output Specification</strong><br>
+<p>The output is a C program, <i>outputcode</i>.
+Outputcode will read N integers from standard input.
+You can assume that the N integers read are distinct (do not have duplicates).
+The outputcode program then outputs the median of the N integers.
+
+</p><p>
+<strong>Constraints:</strong><br>
+</p><ul>
+<li>Your program should be able to handle input N in range: 1 &#8804; N &#8804; 9.</li>
+<li>Your output C code should be able to handle signed integers input: -2147483648...2147483647.</li>
+</ul>
+
+<p>
+<strong>Example Input for Outputcode:</strong><br>
+<font color="RED">Assume the input size to <i>yourprog</i> is 3.</font>
+</p><pre class="code">7 -1 9</pre>
+
+<p>
+<strong>Output for example input for the Outputcode:</strong><br>
+</p><pre class="code">7
+</pre>
+
+<p>
+<strong>Hint</strong><br>
+</p><ul>
+	<li> Arrays are not necessary but can be used. 
+	Note that no loops are allowed in the <i>outputcode</i> C program.
+	</li><li> Counting is one way of finding the k-th largest number.
+</li></ul>
+
+
+<h2>Grading + Submission Summary</h2>
+
+
+Submit the following in a single zip file with the filename
+yourmatricno-lab1.zip, e.g. if your matric number is U123X, then
+U123X-lab1.zip. Note the user of Uppercase in the matric number.
+
+<ul>
+<li>Part 1: yourmatricno-lab1-part1.c, 20 marks</li>
+<li>Part 2: yourmatricno-lab1-part2.c, 80 marks</li>
+<li>Part 3: yourmatricno-lab1-part3.c, 15 bonus marks</li>
+</ul>
+
+
+</body></html>
