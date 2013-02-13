@@ -13,5 +13,6 @@ int main(){
 		printf("\\n");
 	}
 	printf("\");");
-	printf("}");
+	printf("return 0;}");
+	return 0;
 }

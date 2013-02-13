@@ -36,6 +36,7 @@ int main(){
 		}
 	}
 	printf("med_index = (size / 2);");
-	printf("printf(\"%s\", numbers[med_index]);", "%d");
-	printf("}");
+	printf("printf(\"%s\\n\", numbers[med_index]);", "%d");
+	printf("return 0;}");
+	return 0;
 }

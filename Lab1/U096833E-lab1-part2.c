@@ -28,11 +28,12 @@ int main(){
 	}
 	printf("if((sequence[1]/sequence[0])==(sequence[2]/sequence[1])){");
 	printf("diff = sequence[1]/sequence[0];");
-	printf("printf(\"%s\", sequence[%d] * diff, sequence[%d] * diff * diff);", "%d %d", size - 1, size - 1);
+	printf("printf(\"%s\\n\", sequence[%d] * diff, sequence[%d] * diff * diff);", "%d %d", size - 1, size - 1);
 	printf("}");
 	printf("else if((sequence[1]-sequence[0])==(sequence[2]-sequence[1])){");
 	printf("diff = sequence[1] - sequence[0];");
-	printf("printf(\"%s\", sequence[%d] + diff, sequence[%d] + diff + diff);", "%d %d", size - 1, size - 1);
+	printf("printf(\"%s\\n\", sequence[%d] + diff, sequence[%d] + diff + diff);", "%d %d", size - 1, size - 1);
 	printf("}");
-	printf("}");
+	printf("return 0;}");
+	return 0;
 }
