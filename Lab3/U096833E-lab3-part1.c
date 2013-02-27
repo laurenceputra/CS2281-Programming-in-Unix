@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#define CHUNK_SIZE 32
+#define CHUNK_SIZE 64
 
 typedef struct part {
     char strChunk[CHUNK_SIZE]; 
@@ -85,4 +85,5 @@ int main(){
 		cur_head = cur_head->next;
 		free(cur_head->before);
 	}
+	return 0;
 }

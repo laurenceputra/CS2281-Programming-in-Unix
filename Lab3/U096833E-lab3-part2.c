@@ -1,58 +1,90 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#define BUFFER_SIZE 64
 
-void my_memusage(char *);
+#define CHUNK_SIZE 32
+
+typedef struct part {
+    char strChunk[CHUNK_SIZE]; 
+    struct part *next; 
+    struct part *before;
+} part;
 
 int main(){
-	char buffer[BUFFER_SIZE];
-	size_t curBufferSize;
-	size_t lineSize = 0; //null string
-	char *line = malloc(sizeof(char) * 1);
-	int palindrome, loopLimit, counter;
-
+	part *head = (part *)malloc(sizeof(part));
+	head->before = NULL;
+	head->next = NULL;
+	part *tail = head;
+	part *cur_head;
+	int palindrome, loopLimit, counter, headCounter, tailCounter;
+	size_t lineSize = CHUNK_SIZE, curLineSize = 0, curChunkSize = 0, curChunks = 1;
 	my_memusage("INIT");
-
-	while(fgets(buffer, BUFFER_SIZE, stdin)){
-		curBufferSize = strlen(buffer);
-		lineSize += curBufferSize;
-		line = realloc(line, lineSize);
-		if(line == NULL){
-			printf("Realloc failed!\n");
-			free(line);
-			exit(-1);
-		}
-		strcat(line, buffer);
-		if((curBufferSize > 0 && buffer[curBufferSize - 1] == '\n') || feof(stdin)){
-			if(curBufferSize > 0 && buffer[curBufferSize - 1] == '\n'){
-				lineSize--;
-				line[lineSize] = '\0';
+	while(fgets(tail->strChunk, CHUNK_SIZE, stdin)){
+		curChunkSize = strlen(tail->strChunk);
+		curLineSize += curChunkSize;
+		if((curChunkSize > 0 && tail->strChunk[curChunkSize - 1] == '\n') || feof(stdin)){
+			//line gotten
+			if(curChunkSize > 0 && tail->strChunk[curChunkSize - 1] == '\n'){
+				curLineSize--;
+				curChunkSize--;
+				tail->strChunk[curChunkSize] = '\0';
 			}
-			if (lineSize == 0){
-				continue;
-			}
-			else{
-				lineSize--;
-				loopLimit = lineSize / 2;
+			if(curLineSize != 0){
+				curChunkSize--;
+				curLineSize--;
+				loopLimit = curLineSize / 2 + 1;
+				cur_head = head;
+				headCounter = 0;
+				tailCounter = curChunkSize;
 				palindrome = 0;
 				for (counter = 0; counter < loopLimit; counter++){
-					if(line[counter] != line[lineSize - counter]){
+					if(cur_head->strChunk[headCounter] != tail->strChunk[tailCounter]){
 						palindrome = 1;
 						break;
 					}
+					headCounter++;
+					if(headCounter == CHUNK_SIZE - 1){
+						cur_head = cur_head->next;
+						headCounter = 0;
+					}
+					tailCounter--;
+					if(tailCounter == -1){
+						tail = tail->before;
+						tailCounter = CHUNK_SIZE - 2;
+					}
 				}
 				if (palindrome == 0){
-					fputs(line, stdout);
+					cur_head = head;
+					while(curChunks != -1){
+						fputs(cur_head->strChunk, stdout);
+						curChunks--;
+						cur_head = cur_head->next;
+					}
 					fputs("\n", stdout);
 				}
+				curChunks = 0;
+				curLineSize = 0;
+				curChunkSize = 0;
+				tail = head;
 			}
-			free(line);
-			lineSize = 0;
-			line = malloc(sizeof(char) * 1);
+		}
+		else{
+			if(tail->next == NULL){
+				//allocate new block and continue processing
+				tail->next = (part *)malloc(sizeof(part));
+				tail->next->next = NULL;
+				tail->next->before = tail;
+				lineSize += CHUNK_SIZE;
+			}
+			tail = tail->next;
+			curChunks += 1;
 		}
 	}
-
+	cur_head = head;
+	while(cur_head->next != NULL){
+		cur_head = cur_head->next;
+		free(cur_head->before);
+	}
 	my_memusage("END");
 	return 0;
 }
