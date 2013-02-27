@@ -43,7 +43,7 @@ int main(){
 						break;
 					}
 					headCounter++;
-					if(headCounter == CHUNK_SIZE){
+					if(headCounter == CHUNK_SIZE - 1){
 						cur_head = cur_head->next;
 						headCounter = 0;
 					}
@@ -72,11 +72,17 @@ int main(){
 			if(tail->next == NULL){
 				//allocate new block and continue processing
 				tail->next = (part *)malloc(sizeof(part));
+				tail->next->next = NULL;
 				tail->next->before = tail;
 				lineSize += CHUNK_SIZE;
 			}
 			tail = tail->next;
 			curChunks += 1;
 		}
+	}
+	cur_head = head;
+	while(cur_head->next != NULL){
+		cur_head = cur_head->next;
+		free(cur_head->before);
 	}
 }
