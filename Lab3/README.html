@@ -1,0 +1,425 @@
+<html>
+<h1>CS2281 Lab 3: Processing Text and Binary Files (Graded)</h1>
+
+<p>
+<h2>Motivation</h2>
+
+<p>
+The main part (non-optional) part of the lab is to gain
+practice with processing text files. It also shows you the
+importance of making programs robust to the input - programs
+should be able to deal with long lines. Furthermore,
+a very common problem these days is that many programs are
+susceptible to buffer overflow which may mean that they can
+be exploited by malware.
+A hypothetical example is to corrupt some data being read by a web server
+using large input which the programmer might
+have not have considered as a possibility.
+
+<p>
+Note that C programs do not need to be formatted in multiple lines.
+In principle, the whole program can just be all on a single line.
+Of course, this is not very legible, but it may be the output of some
+kind of preprocessor (e.g. Lab 1). As such, the C compiler might
+be expected to deal with long lines as well. I did not test this but
+you may want to try it out on <tt>gcc</tt>.
+
+<p>
+After completing the lab, you should find that while palindrome checking 
+is just a puzzle, portions of your program which deal with managing
+large files will be useful for writing robust programs.
+The following programs which process text files in
+a line-oriented fashion were tested on Solaris: <br>
+<tt>comm, cut, diff, fold gawk, grep, sed, sort, tail, uniq</tt>
+<br>
+They were tested to work with lines as large as 14M characters 
+(even longer lines were not tried).
+One program failed with long lines: <tt>awk</tt>.
+It failed on lines as short as 1000 characters :-(
+However, there is no need to use <tt>awk</tt> since
+<tt>gawk</tt> (the GNU replacement
+for <tt>awk</tt>) passes the test. 
+
+<h2>Preliminaries</h2>
+
+<p>
+This lab is also designed to expose students to programming with pointers.
+It will prepare you for writing <i>real C programs</i> and debugging
+them in the future (both in this course and also when
+you need to write real world code).
+Students often debug using diagnostic output, e.g. printf style debugging.
+You will find that this may be problematic with this lab due to large
+files with many lines and long lines will lead to megabytes or even
+gigabytes of diagnostics. 
+Rather, I suggest that students learn how to use 
+<tt>gdb</tt> as described in <A href="lab0.pdf">Lab 0</A> and 
+<A href="lab2.html">Lab 2</A>. 
+See also the links in the main page for gdb tutorials.
+<p>
+Please note that there is no simple route to writing C programs well.
+Some people may find programming in C to be easy but
+others may find it to be extremely difficult and frustrating :-(
+<p>
+In this lab, you will only be reading from standard input (<tt>stdin</tt>)
+and writing to standard output (<tt>stdout</tt>).
+Do not read and write other files.
+Please make sure that you <b>do not have any debugging output</b>
+in your submission - the program should only output what is specified below
+and nothing else.
+
+<p>
+Please note that all files used in examples and labs can be found in
+the directory <tt>~cs2281/public_html/Labs</tt> (samples in
+<tt>~cs2281/public_html/C</tt>).
+Data files are not hyper-linked below but can be found in 
+<tt>~cs2281/public_html/Labs</tt>.
+The <b>exact path name</b> is needed, e.g. 
+<tt>~cs2281/public_html/Labs/lab3-1k.dat</tt>
+
+
+<h2>Part 1: A Basic Palindrome Checker (20 points)</h2>
+<p>
+A palindrome is a string which is the same when reversed.
+Some examples will make this clear: (the last palindrome is in Dutch
+and Revilo is a real <A href="http://en.wikipedia.org/wiki/Revilo_P._Oliver">
+person</A>)
+<pre>
+aha
+abba
+step on no pets
+able was i ere i saw elba
+ablewasiereisawelba
+desserts I stressed
+amanaplanacanalpanama
+revilo p oliver
+Otto saw pup pup was ottO
+potstalmelkkoortspilstaalplaatslipstrookklemlatstop
+</pre>
+Clearly, any string with repeated letters is a palindrome.
+Similarly any string with one letter is a palindrome.
+A blank line could be considered a palindrome <b>but for the purposes
+	of this lab</b>
+blank lines are <b>not</b> palindromes.
+<p>
+An example of a line which is not a palindrome is
+<tt>abab</tt>.
+Sometimes, punctuation and letter case
+are ignored for palindromes but to simplify the lab, 
+we will only consider palindromes which match exactly using every character in the line.
+Thus, the following lines are <b>not palindromes</b>:
+(compare them with the punctuation removed versions above)
+<pre>
+A man, a plan, a canal, Panama!
+Revilo P. Oliver
+Otto saw pup ! Pup was Otto
+</pre>
+<p>
+<b>Task Overview:</b> <br>
+Write a program which reads lines from standard input 
+and prints to standard output all lines which are palindromes.
+Your C program should be called <i>yourmatricno</i>-lab3-part1.c.
+<p>
+<b>Input Specification:</b> <br>
+The input is a sequence of lines from standard input (<tt>stdin</tt>).
+A line may be empty (just a newline by itself) or have
+any number of non-newline characters
+followed by a newline character ('<tt>\n</tt>')).
+<p>
+<b>Output Specification:</b> <br>
+Output the lines which are palindromes to standard output (<tt>stdout</tt>)
+in the order they appear in the input.
+The definition of palindrome is as above - a blank line is not a palindrome;
+and punctuation, uppercase and lowercase letters are significant,
+e.g. <tt>AbBa</tt> is not a palindrome.
+<p>
+For example, given the following input,
+<pre>
+a line
+aabbaa
+..
+xyz
+AbBa
+aha
+</pre>
+your program will output:
+<pre>
+aabbaa
+..
+aha
+</pre>
+
+<p>
+<b>Assumptions:</b> <br>
+You can assume in Part 1 that the maximum length of a line in the input,
+not including the newline, is 60 characters.
+You are allowed to use a fixed sized buffer, i.e. <tt>char line[60+1]</tt>,
+in your program to store a line.
+<p>
+<b>Notes:</b> <br>
+All students should be able to successfully complete Part 1.
+The intention of Part 1 is for you to understand what is a palindrome
+and how to recognize a palindrome. <br>
+Hint: see the sample programs in the C Library section of the notes (clib).
+<p>
+If you already know how to do Part 2, it can also be used for Part 1.
+Note however that in Part 2
+you are not allowed to use a fixed buffer.
+
+<p>
+Observe that if every line in the input is a palindrome, then, the result
+is to copy the input to the output, e.g. behaves like the <tt>cat</tt> program.
+<p>
+
+<h2>Part 2: Dealing with Arbitrary Line Lengths (80 points)</h2>
+<p>
+Write a program, <i>yourmatricno</i>-lab3-part2.c, which outputs the lines which
+are palindromes as in Part 1 but taking into account the following
+requirements: 
+<ul>
+	<li> You <b>cannot</b> use a large buffer to store the
+line as there is no assumption of a pre-determined maximum line length.
+<li> The memory usage of your process should scale
+according to the length of the longest line encountered in the input.
+It should <b>not scale</b> according to the size of the input,
+the exception being when the input only consists of a single line.
+<li> The first step in your program is to
+call <tt>my_memusage("INIT")</tt> at the start before anything else. 
+The prototype for <tt>my_memusage()</tt> is: 
+<pre>
+void my_memusage(char *); 
+</pre>
+Before your program terminates, the last step is to call
+<tt>my_memusage("END")</tt>.
+<li> No temporary files are allowed. The only I/O allowed is reading from
+standard input and writing to standard output.
+</ul>
+These constraints mean that process memory size is dependent on the
+length of the longest line.
+The skeleton of your <tt>main()</tt> function should be:
+<pre>
+// other declarations and function above
+
+void my_memusage(char *); // prototype for my_memusage
+
+int main()
+{
+	// various declarations
+	my_memusage("INIT");
+	
+	// your own code
+
+	my_memusage("END");
+	return 0;
+}
+</pre>	
+<tt>my_memusage()</tt> has already been pre-compiled into the
+following object file, <tt>lab3-memusage.o</tt>, which you should copy
+to your directory from <tt>~cs2281/public_html/Labs/lab3-memusage.o</tt>.
+Your program is compiled by linking in <tt>lab3-memusage.o</tt>.
+If you have not yet tried out separate compilation and linking,
+please see <A href="lab0.pdf">lab0 preliminaries</A> and 
+<A href="lab2.html">lab 2</A>. 
+For example,
+<pre>
+$ gcc lab3-part2.c lab3-memusage.o
+</pre>
+You will find that <tt>my_memusage()</tt> prints out some diagnostics
+about time and memory usage to <tt>stderr</tt>.
+It gives the <i>User Time</i> (utime) which is the amount of time Unix ran the program
+code; and the <i>System Time</i> (stime) which is the amount of time spent inside the Unix
+kernel (e.g. doing I/O).
+The "<i>Delta</i>" is the
+difference in memory usage between the start and end of your program
+(the difference between "INIT" and "END" calls to <tt>my_memusage()</tt>.
+<p>
+You can also use the <tt>time</tt> command to do the timing (see <tt>time(1)</tt>). 
+<pre>
+$ time a.out
+</pre>
+Try it and compare the times. Note that <i>Real Time</i> is wall clock time which is
+different from User Time - recall that Solaris is a multi-tasking and multi-user operating
+system, so it is concurrently running many processes, and all of those take time.
+The User Time is how much time was logically spent on running the program.
+<p>
+You <b>must</b> call <tt>my_memusage()</tt> as shown above, otherwise,
+your program will incur a penalty.
+Please note that a pointer going <i>haywire</i> may in the worst
+case affect/corrupt the operation of <tt>my_memusage()</tt>
+(this is due to C not having the overhead of runtime safety).
+Do run <tt>gcc -Wall</tt> and <tt>lint</tt>
+to check your program for potential problems.
+<p>
+Your program should not take be too slow if there are long lines.
+For example, an algorithm which takes quadratic complexity on the line
+length may be too slow. Programs which take too long to execute may
+incur a grading penalty as it is not feasible to wait more than
+the expected amount of time.
+<p>
+Please ensure that the maximum process size does not exceed 16MB.
+The maximum line length in test files for grading will not exceed
+100000 characters per line.
+Furthermore, when the input has short lines,
+the memory usage should be small compared to when the input has long lines.
+Another way of thinking about it is that the <i>Delta</i> from <tt>my_memusage()</tt> should
+scale with the maximum line length.
+It should also be small (taking into account any other memory overheads, e.g. from <tt>stdio</tt>)
+when the input has short lines.
+<p>
+Grading will take into account the <b>memory usage</b> as well as the 
+<b>running time</b> with 40 marks for correctness and 40 marks for performance
+(memory + time).
+Because the grading of Part 2 is based on performance, the final mark
+will be <b>competive</b> and will, in part, depend on how well the submitted 
+programs from the class perform.
+
+<p>
+<h3>Notes and Hints</h3>
+<ul>
+<li> You will need to use I/O redirection provided by the <tt>bash</tt>
+shell to test your program.
+Please see the <A href="../Notes/starting-unix.pdf">Starting Unix</A> slides. 
+Some examples using <tt>bash</tt>:
+<pre>
+$ a.out &lt;input.dat # standard input taken from file input.dat
+$ a.out &lt;input.dat >output.dat # standard output also goes to file output.dat
+$ a.out 2>debug.dat # only stderr output goes to debug.dat
+$ a.out &lt;input.dat >output.dat 2>debug.dat # stdin, stdout, stderr redirected
+</pre>
+
+<li> To allocate dynamic data structures, see <tt>malloc(3C)</tt>. 
+<br>
+Note the notation <tt>malloc(3C)</tt> is not a function call but a reference
+to the Unix <tt>man</tt> pages. 
+Thus, 3C refers
+to section 3C of the <tt>man</tt>, so <tt>man -s 3C malloc</tt>)
+
+<li> A dynamic data structure such as a linked list could be used to store
+a line as it is being read. Take note that a linked list such as
+<pre>
+struct letter {
+	char c; 
+	struct letter *next; 
+} 
+</pre>
+takes 8 bytes on sunfire (check <tt>sizeof(struct letter)</tt>).
+The memory overhead of one object of <tt>struct letter</tt>
+will be 8 bytes per letter! There are a number of more efficient and suitable 
+dynamic data structures.
+
+<li> In order to check your memory usage, see the diagnostics
+printed to <tt>stderr</tt> from  <tt>my_memusage()</tt>.
+Take care to make sure that the submitted
+code has no diagnostic output to <tt>stdout</tt>.
+
+<li> The following sample input files have palindrome lines which are 
+<i>at least</i> 32, 1K and 32K characters long respectively: <br>
+<tt>lab3-32.dat</tt>, <tt>lab3-1k.dat</tt>, <tt>lab3-32k.dat</tt> <br>
+You may need
+to write a program to make your own test data with long line lengths.
+Students are allowed to discuss and share code/programs for creating
+large files for testing. However, the actual program for the lab should
+be your own <b>individual work</b>.
+
+<p>
+The sample files do not contain any interesting palindromes as they
+are only meant for testing how well your code deals with lines of various
+lengths.
+To do palindrome testing, you will need to create your own datasets.
+</ul>
+
+<h2>Part 3: Binary Forensics (Optional part, Bonus: 15 Marks) </h2>
+<p>
+<h3>Motivation</h3>
+
+<p>
+The rationale for this task is to understand how to process binary files,
+play with hexadecimal formats, understand number formats and dealing with exact representations.
+
+<p>
+Students who do not have much of a background in computer architecture or are not interested
+in "<i>hacking</i>" may want to skip this task.
+
+<p>
+<h3>The Bonus Task</h3>
+
+<p>
+In this bonus task, you will be challenged with a digital forensics
+problem. Here is the <i>imagined</i> scenario:
+<blockquote>
+Last night, a secret agent successfully hacked into the network of a rogue bank
+and stole a file. He believes that this file contains a history of
+transactions from various account numbers. Unfortunately, this file is
+in binary format and he is not good with this kind of decoding problem.<br/>
+<br/>
+Your mission as the computer expert in <A href="http://en.wikipedia.org/wiki/Impossible_Missions_Force">IMF</A> (<i>if you choose to accept it</i>) 
+is to decode the file into a readable and meaningful ASCII form.
+</blockquote>
+Your task is:
+<ul>
+<li> Write a program which reads a binary file and outputs the
+content to standard output (<tt>stdout</tt>) in ASCII format.</li>
+<li>You can present the output in any style, but preferably it should
+be as similar to the contents and layout of binary file as possible.</li>
+<li>Write some short comments in your source code describing the
+content/format of the binary file.</li>
+</ul>
+<p>
+The file name will be given as argument to your program. For example,
+let the binary file be "<tt>sample.bin</tt>" and your program is
+"<tt>lab3-part3.c</tt>", then your program will be run using the
+following commands:
+
+<pre>
+$ gcc lab3-part3.c -o lab3-part3
+$ lab3-part3 sample.bin
+</pre>
+
+<p>
+The binary file is not given to you, but you may use this sample file, 
+<tt>lab3-sample.bin</tt> (640 bytes),
+to figure out the format and prepare your program.
+The original binary file will have a same format with the sample, but contain more data.
+
+<p>
+Here are some hints about the data:
+<ul>
+<li>Zhang Hao bank account's number is 529110386.</li>
+<li>On 1 Feb 2012, Ma Jungqi withdrew (debet) $1,000 from his account via ATM.</li>
+<li>On 31 Jan 2013, Selena Koh deposited (credit) $5,500 cash into her account.</li>
+<li>Julian Topor is a very rich man, he had 10 billion dollars in his account on 31 December 2012.
+He is known to have deposited another 5 billion to his account on 14 Feb 2012.</li>
+</ul>
+
+<p>
+<h3>Notes and Hints</h3>
+<ul>
+<li> This binary file was generated on an unknown machine (probably not sunfire).
+<li> It is known that the binary file contains <b>fixed length records</b>, i.e. it is a file of
+C struct.
+<li> Your program will be tested on sunfire.
+<li> Hexadecimal being an even number of bits (4 bits) is more useful than Octal (3 bits).
+<li> It will be useful to look at the binary file in hexadecimal as well as ASCII.
+Some programs you can use on sunfire are: <tt>od(1)</tt> and <tt>xxd(1)</tt>.
+<tt>vim</tt> users may find this <A href="http://stackoverflow.com/questions/839227/how-to-edit-binary-file-on-the-unix-systems">link</A> to be useful.
+<p>
+Note that you need not examine the file on sunfire. However your program must run on sunfire.
+<li> The material we covered in <i>c-part1</i> and <i>c-part2</i> notes will be useful. 
+Also lookahead (if we have not yet covered, when you start) to <i>clib</i>.
+This includes the sample code as well as the notes.
+</ul>
+
+<h2>Grading + Submission Summary</h2>
+<p>
+Submit the following in a single zip file with the filename <i>yourmatricno</i><b>-lab3.zip</b>, e.g. if your matric number is U123X, then U123X-lab3.zip. Note the user of Uppercase in the matric number.
+<b>You should add in a comment block to each file at the start</b>: 
+Name, Matric, Email.
+<ul>
+<li> Part 1: <i>yourmatricno</i>-lab3-part1.c</t>, 20 marks
+<li> Part 2: <i>yourmatricno</i>-lab3-part2.c</t>, 40 (correctness) + 40 (performance) marks
+<li> Part 3: <i>yourmatricno</i>-lab3-part3.c</t>, 15 bonus marks 
+</ul>
+
+</body>
+</html>
+
+
