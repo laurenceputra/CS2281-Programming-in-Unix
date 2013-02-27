@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#define CHUNK_SIZE 32
+#define CHUNK_SIZE 512
 
 typedef struct part {
     char strChunk[CHUNK_SIZE]; 
@@ -19,12 +19,13 @@ int main(){
 	int palindrome, loopLimit, counter, headCounter, tailCounter;
 	size_t lineSize = CHUNK_SIZE, curLineSize = 0, curChunkSize = 0, curChunks = 1;
 	my_memusage("INIT");
-	while(fgets(tail->strChunk, CHUNK_SIZE, stdin)){
+	while(!feof(stdin)){
+		fgets(tail->strChunk, CHUNK_SIZE, stdin);
 		curChunkSize = strlen(tail->strChunk);
 		curLineSize += curChunkSize;
-		if((curChunkSize > 0 && tail->strChunk[curChunkSize - 1] == '\n') || feof(stdin)){
+		if((curLineSize > 0 && tail->strChunk[curChunkSize - 1] == '\n') || feof(stdin)){
 			//line gotten
-			if(curChunkSize > 0 && tail->strChunk[curChunkSize - 1] == '\n'){
+			if(curLineSize > 0 && tail->strChunk[curChunkSize - 1] == '\n'){
 				curLineSize--;
 				curChunkSize--;
 				tail->strChunk[curChunkSize] = '\0';
@@ -36,6 +37,14 @@ int main(){
 				cur_head = head;
 				headCounter = 0;
 				tailCounter = curChunkSize;
+				if(headCounter == CHUNK_SIZE - 1){
+					cur_head = cur_head->next;
+					headCounter = 0;
+				}
+				if(tailCounter == -1){
+					tail = tail->before;
+					tailCounter = CHUNK_SIZE - 2;
+				}
 				palindrome = 0;
 				for (counter = 0; counter < loopLimit; counter++){
 					if(cur_head->strChunk[headCounter] != tail->strChunk[tailCounter]){
