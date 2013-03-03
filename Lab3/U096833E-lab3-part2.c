@@ -11,14 +11,14 @@ typedef struct part {
 } part;
 
 int main(){
+	int palindrome, loopLimit, counter, headCounter, tailCounter;
+	size_t lineSize = CHUNK_SIZE, curLineSize = 0, curChunkSize = 0, curChunks = 1;
+	my_memusage("INIT");
 	part *head = (part *)malloc(sizeof(part));
 	head->before = NULL;
 	head->next = NULL;
 	part *tail = head;
 	part *cur_head;
-	int palindrome, loopLimit, counter, headCounter, tailCounter;
-	size_t lineSize = CHUNK_SIZE, curLineSize = 0, curChunkSize = 0, curChunks = 1;
-	my_memusage("INIT");
 	while(!feof(stdin)){
 		fgets(tail->strChunk, CHUNK_SIZE, stdin);
 		curChunkSize = strlen(tail->strChunk);
