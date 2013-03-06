@@ -20,20 +20,17 @@ int main(int argc, char *argv[]){
 		return 2;
 	}
 	FILE *binFile = fopen(argv[1], "rb");
-	char buffer[64];
-	unsigned char temp[64];
-	char tmp;
-	int i = 0, data[64];
+	int i = 0, padding;
 	record *cur = malloc(sizeof(record));
 	while(fread(&cur->account, 1, 4, binFile)){
 		fread(cur->name, 1, 30, binFile);
 		fread(&cur->date, 1, 1, binFile);
 		fread(&cur->month, 1, 1, binFile);
 		fread(&cur->year, 1, 2, binFile);
-		fread(&cur->padding, 1, 2, binFile);
+		fread(padding, 1, 2, binFile);
 		fread(cur->op, 1, 4, binFile);
 		cur->op[4] = '\0';
-		fread(&cur->padding, 1, 4, binFile);
+		fread(padding, 1, 4, binFile);
 		fread(&cur->transaction, 1, 8, binFile);
 		fread(&cur->amount_left, 1, 8, binFile);
 		cur->account = __builtin_bswap32(cur->account);
