@@ -12,7 +12,7 @@ typedef struct record {
 } record;
 
 int mybswap16(int val){
-	return (val << 4) | (val >> 4);
+	return (val << 8) | (val >> 8);
 }
 int main(int argc, char *argv[]){
 	if(argc != 2){
