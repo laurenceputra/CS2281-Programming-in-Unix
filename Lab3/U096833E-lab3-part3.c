@@ -27,10 +27,10 @@ int main(int argc, char *argv[]){
 		fread(&cur->date, 1, 1, binFile);
 		fread(&cur->month, 1, 1, binFile);
 		fread(&cur->year, 1, 2, binFile);
-		fread(padding, 1, 2, binFile);
+		fread(&padding, 1, 2, binFile);
 		fread(cur->op, 1, 4, binFile);
 		cur->op[4] = '\0';
-		fread(padding, 1, 4, binFile);
+		fread(&padding, 1, 4, binFile);
 		fread(&cur->transaction, 1, 8, binFile);
 		fread(&cur->amount_left, 1, 8, binFile);
 		cur->account = __builtin_bswap32(cur->account);
