@@ -1,18 +1,17 @@
 #include <stdio.h>
 #include <stdlib.h>
 typedef struct record {
-    int account;
+    unsigned int account;
     char name[30];
-    int date;
-    int month;
-    int year;
-    int padding;
+    char date;
+    char month;
+    unsigned short year;
     char op[5];
-    long long transaction;
-    long long amount_left;
+    unsigned long long transaction;
+    unsigned long long amount_left;
 } record;
 
-int mybswap8(int val){
+int mybswap16(int val){
 	return (val << 4) | (val >> 4);
 }
 int main(int argc, char *argv[]){
