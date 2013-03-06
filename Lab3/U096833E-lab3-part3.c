@@ -3,8 +3,8 @@
 typedef struct record {
     unsigned int account;
     char name[30];
-    char date;
-    char month;
+    unsigned char date;
+    unsigned char month;
     unsigned short year;
     char op[5];
     unsigned long long transaction;
@@ -39,7 +39,7 @@ int main(int argc, char *argv[]){
 		cur->amount_left = __builtin_bswap64(cur->amount_left);
 		printf("%d %s\n", cur->account, cur->name);
 		printf("%d %d %d\n", cur->date, cur->month, cur->year);
-		printf("%s %ld %ld\n DONE!\n", cur->op, cur->transaction, cur->amount_left);
+		printf("%s %lld %lld\n DONE!\n", cur->op, cur->transaction, cur->amount_left);
 	}
 	return 0;
 }
