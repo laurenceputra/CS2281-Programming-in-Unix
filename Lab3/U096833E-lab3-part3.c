@@ -23,11 +23,7 @@ int main(int argc, char *argv[]){
 	char tmp;
 	int i = 0, data[64];
 	record *cur = malloc(sizeof(record));
-	while(!feof(binFile)){
-		fread(&cur->account, 1, 4, binFile);
-		if(feof(binFile)){
-			break;
-		}
+	while(fread(&cur->account, 1, 4, binFile)){
 		fread(cur->name, 1, 30, binFile);
 		fread(&cur->date, 1, 1, binFile);
 		fread(&cur->month, 1, 1, binFile);
