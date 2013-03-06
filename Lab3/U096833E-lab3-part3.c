@@ -34,9 +34,7 @@ int main(int argc, char *argv[]){
 		fread(&cur->transaction, 1, 8, binFile);
 		fread(&cur->amount_left, 1, 8, binFile);
 		cur->account = __builtin_bswap32(cur->account);
-		cur->date = mybswap16(cur->date);
-		cur->month = mybswap16(cur->month);
-		cur->year = __builtin_bswap32(cur->year);
+		cur->year = mybswap16(cur->year);
 		cur->transaction = __builtin_bswap64(cur->transaction);
 		cur->amount_left = __builtin_bswap64(cur->amount_left);
 		printf("%d %s\n", cur->account, cur->name);
