@@ -1,3 +1,8 @@
+/***************
+Name: Laurence
+Matric: U096833E
+Email: lpf@nus.edu.sg
+***************/
 #include <stdio.h>
 #include <stdlib.h>
 typedef struct record {

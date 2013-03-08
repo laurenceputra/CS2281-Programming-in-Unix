@@ -1,8 +1,14 @@
+/***************
+Name: Laurence
+Matric: U096833E
+Email: lpf@nus.edu.sg
+***************/
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
-#define CHUNK_SIZE 8192
+#define CHUNK_SIZE 512
 
 typedef struct part {
     char strChunk[CHUNK_SIZE]; 
@@ -65,14 +71,14 @@ int main(){
 				if (palindrome == 0){
 					cur_head = head;
 					while(curChunks != -1){
-						printf("%s", cur_head->strChunk);
-						//fputs(cur_head->strChunk, stdout);
+						//printf("%s", cur_head->strChunk);
+						fputs(cur_head->strChunk, stdout);
 						//printf faster
 						curChunks--;
 						cur_head = cur_head->next;
 					}
-					printf("\n");
-					//fputs("\n", stdout);
+					//printf("\n");
+					fputs("\n", stdout);
 				}
 				curChunks = 0;
 				curLineSize = 0;
