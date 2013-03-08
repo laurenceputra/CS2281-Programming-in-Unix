@@ -65,11 +65,14 @@ int main(){
 				if (palindrome == 0){
 					cur_head = head;
 					while(curChunks != -1){
-						fputs(cur_head->strChunk, stdout);
+						printf("%s", cur_head->strChunk);
+						//fputs(cur_head->strChunk, stdout);
+						//printf faster
 						curChunks--;
 						cur_head = cur_head->next;
 					}
-					fputs("\n", stdout);
+					printf("\n");
+					//fputs("\n", stdout);
 				}
 				curChunks = 0;
 				curLineSize = 0;
