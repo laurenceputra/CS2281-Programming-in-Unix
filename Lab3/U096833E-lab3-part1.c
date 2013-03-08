@@ -8,7 +8,8 @@ Email: lpf@nus.edu.sg
 #include <string.h>
 
 #define CHUNK_SIZE 512
-
+#define MAX_CHUNK_SIZE_NULL  CHUNK_SIZE - 1
+#define MAX_CHUNK_STR_LEN CHUNK_SIZE - 2
 typedef struct part {
     char strChunk[CHUNK_SIZE]; 
     struct part *next; 
@@ -30,7 +31,7 @@ int main(){
 		curLineSize += curChunkSize;
 		if((curLineSize > 0 && tail->strChunk[curChunkSize - 1] == '\n') || feof(stdin)){
 			//line gotten
-			if(curLineSize > 0 && tail->strChunk[curChunkSize - 1] == '\n'){
+			if(tail->strChunk[curChunkSize - 1] == '\n'){
 				curLineSize--;
 				curChunkSize--;
 				tail->strChunk[curChunkSize] = '\0';
@@ -42,13 +43,9 @@ int main(){
 				cur_head = head;
 				headCounter = 0;
 				tailCounter = curChunkSize;
-				if(headCounter == CHUNK_SIZE - 1){
-					cur_head = cur_head->next;
-					headCounter = 0;
-				}
 				if(tailCounter == -1){
 					tail = tail->before;
-					tailCounter = CHUNK_SIZE - 2;
+					tailCounter = MAX_CHUNK_STR_LEN;
 				}
 				palindrome = 0;
 				for (counter = 0; counter < loopLimit; counter++){
@@ -57,14 +54,14 @@ int main(){
 						break;
 					}
 					headCounter++;
-					if(headCounter == CHUNK_SIZE - 1){
+					if(headCounter == MAX_CHUNK_SIZE_NULL){
 						cur_head = cur_head->next;
 						headCounter = 0;
 					}
 					tailCounter--;
 					if(tailCounter == -1){
 						tail = tail->before;
-						tailCounter = CHUNK_SIZE - 2;
+						tailCounter = MAX_CHUNK_STR_LEN;
 					}
 				}
 				if (palindrome == 0){

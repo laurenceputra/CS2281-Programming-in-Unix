@@ -32,7 +32,7 @@ int main(){
 		curLineSize += curChunkSize;
 		if((curLineSize > 0 && tail->strChunk[curChunkSize - 1] == '\n') || feof(stdin)){
 			//line gotten
-			if(tail->strChunk[curChunkSize - 1] == '\n'){
+			/*if(tail->strChunk[curChunkSize - 1] == '\n'){
 				curLineSize--;
 				curChunkSize--;
 				tail->strChunk[curChunkSize] = '\0';
@@ -78,7 +78,7 @@ int main(){
 				curLineSize = 0;
 				curChunkSize = 0;
 				tail = head;
-			}
+			}*/
 		}
 		else{
 			if(tail->next == NULL){
