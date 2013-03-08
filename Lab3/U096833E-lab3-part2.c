@@ -32,12 +32,12 @@ int main(){
 		curLineSize += curChunkSize;
 		if((curLineSize > 0 && tail->strChunk[curChunkSize - 1] == '\n') || feof(stdin)){
 			//line gotten
-			if(tail->strChunk[curChunkSize - 1] == '\n'){
+			if(curLineSize > 0 && tail->strChunk[curChunkSize - 1] == '\n'){
 				curLineSize--;
 				curChunkSize--;
 				tail->strChunk[curChunkSize] = '\0';
 			}
-			if(curLineSize != 0){
+			if(curLineSize > 0){
 				curChunkSize--;
 				curLineSize--;
 				loopLimit = curLineSize / 2 + 1;
