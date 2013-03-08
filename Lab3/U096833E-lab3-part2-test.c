@@ -68,6 +68,7 @@ int main(){
 				if (palindrome == 0){
 					cur_head = head;
 					while(curChunks != -1){
+						printf("%d ", curChunks);
 						fputs(cur_head->strChunk, stdout);
 						curChunks--;
 						cur_head = cur_head->next;
