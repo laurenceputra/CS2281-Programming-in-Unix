@@ -17,7 +17,7 @@ typedef struct part {
 } part;
 
 int main(){
-	my_memusage("INIT");
+	//my_memusage("INIT");
 	part *head = (part *)malloc(sizeof(part));
 	head->before = NULL;
 	head->next = NULL;
@@ -49,7 +49,7 @@ int main(){
 					tailCounter = MAX_CHUNK_STR_LEN;
 				}
 				palindrome = 0;
-				for (counter = 0; counter < loopLimit; counter++){
+				/*for (counter = 0; counter < loopLimit; counter++){
 					if(cur_head->strChunk[headCounter] != tail->strChunk[tailCounter]){
 						palindrome = 1;
 						break;
@@ -64,18 +64,17 @@ int main(){
 						tail = tail->before;
 						tailCounter = MAX_CHUNK_STR_LEN;
 					}
-				}
+				}*/
 				if (palindrome == 0){
 					cur_head = head;
-					while(curChunks != -1){
-						printf("%d ", curChunks);
+					while(curChunks != 0){
 						fputs(cur_head->strChunk, stdout);
 						curChunks--;
 						cur_head = cur_head->next;
 					}
 					fputs("\n", stdout);
 				}
-				curChunks = 0;
+				curChunks = 1;
 				curLineSize = 0;
 				curChunkSize = 0;
 				tail = head;
@@ -98,6 +97,6 @@ int main(){
 		cur_head = cur_head->next;
 		free(cur_head->before);
 	}
-	my_memusage("END");
+	//my_memusage("END");
 	return 0;
 }
