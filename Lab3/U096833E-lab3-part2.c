@@ -30,14 +30,14 @@ int main(){
 		fgets(tail->strChunk, CHUNK_SIZE, stdin);
 		curChunkSize = strlen(tail->strChunk);
 		curLineSize += curChunkSize;
-		if((curLineSize > 0 && tail->strChunk[curChunkSize - 1] == '\n') || feof(stdin)){
+		if((curLineSize > 0 && tail->strChunk[curChunkSize - 1] == '\n')){
 			//line gotten
-			if(curLineSize > 0 && tail->strChunk[curChunkSize - 1] == '\n'){
+			if(tail->strChunk[curChunkSize - 1] == '\n'){
 				curLineSize--;
 				curChunkSize--;
 				tail->strChunk[curChunkSize] = '\0';
 			}
-			if(curLineSize > 0){
+			if(curLineSize != 0){
 				curChunkSize--;
 				curLineSize--;
 				loopLimit = curLineSize / 2 + 1;
