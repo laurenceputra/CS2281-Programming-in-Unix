@@ -37,9 +37,9 @@ int main(int argc, char *argv[]){
 		cur->year = mybswap16(cur->year);
 		cur->transaction = __builtin_bswap64(cur->transaction);
 		cur->amount_left = __builtin_bswap64(cur->amount_left);
-		printf("%d %s\n", cur->account, cur->name);
-		printf("%d %d %d\n", cur->date, cur->month, cur->year);
-		printf("%s %lld %lld\n DONE!\n", cur->op, cur->transaction, cur->amount_left);
+		printf("Account: %d\nName: %s\n", cur->account, cur->name);
+		printf("Date: %d/%d/%d\n", cur->date, cur->month, cur->year);
+		printf("Operation: %s\nAmount Transfered: %lld\n Amount Remaining: %lld\n\n", cur->op, cur->transaction, cur->amount_left);
 	}
 	return 0;
 }
