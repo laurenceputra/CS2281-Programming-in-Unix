@@ -39,7 +39,7 @@ int main(int argc, char *argv[]){
 		cur->amount_left = __builtin_bswap64(cur->amount_left);
 		printf("Account: %d\nName: %s\n", cur->account, cur->name);
 		printf("Date: %d/%d/%d\n", cur->date, cur->month, cur->year);
-		printf("Operation: %s\nAmount Transfered: %lld\n Amount Remaining: %lld\n\n", cur->op, cur->transaction, cur->amount_left);
+		printf("Operation: %s\nAmount Transfered: %lld\nAmount Remaining: %lld\n\n", cur->op, cur->transaction, cur->amount_left);
 	}
 	return 0;
 }
