@@ -1,5 +1,5 @@
 # Object files
-*.o
+#*.o
 
 # Libraries
 *.lib
@@ -19,3 +19,5 @@
 test*
 output*
 *.zip
+
+sample
