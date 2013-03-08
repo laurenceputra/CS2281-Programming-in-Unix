@@ -32,7 +32,7 @@ int main(){
 		curLineSize += curChunkSize;
 		if((curLineSize > 0 && tail->strChunk[curChunkSize - 1] == '\n') || feof(stdin)){
 			//line gotten
-			/*if(tail->strChunk[curChunkSize - 1] == '\n'){
+			if(tail->strChunk[curChunkSize - 1] == '\n'){
 				curLineSize--;
 				curChunkSize--;
 				tail->strChunk[curChunkSize] = '\0';
@@ -67,18 +67,18 @@ int main(){
 				}
 				if (palindrome == 0){
 					cur_head = head;
-					while(curChunks != -1){
+					/*while(curChunks != -1){
 						fputs(cur_head->strChunk, stdout);
 						curChunks--;
 						cur_head = cur_head->next;
-					}
+					}*/
 					fputs("\n", stdout);
 				}
 				curChunks = 0;
 				curLineSize = 0;
 				curChunkSize = 0;
 				tail = head;
-			}*/
+			}
 		}
 		else{
 			if(tail->next == NULL){
