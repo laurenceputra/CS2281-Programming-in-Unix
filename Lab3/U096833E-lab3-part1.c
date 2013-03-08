@@ -29,7 +29,7 @@ int main(){
 		fgets(tail->strChunk, CHUNK_SIZE, stdin);
 		curChunkSize = strlen(tail->strChunk);
 		curLineSize += curChunkSize;
-		if((curLineSize > 0 && tail->strChunk[curChunkSize - 1] == '\n') || feof(stdin)){
+		if((curLineSize > 0 && tail->strChunk[curChunkSize - 1] == '\n')){
 			//line gotten
 			if(tail->strChunk[curChunkSize - 1] == '\n'){
 				curLineSize--;
