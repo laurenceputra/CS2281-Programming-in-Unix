@@ -1,0 +1,503 @@
+<html>
+<style>
+.code {
+	background-color:#eeeeee;
+	padding: 5 5 5 5;
+}
+</style>
+<h1>CS2281 Lab 5: Simple Shells and Software Testing (Graded)</h1>
+
+<h3>Motivation</h3>
+<p>
+
+In this assignment, you will learn how to create processes and
+make them run particular executables.
+In particular, using the <tt>fork()</tt> and <tt>exec</tt> family of
+system calls.
+<p>
+You will also see that both parts of the lab give you a certain kind
+of specialized shell. Obviously its not <tt>bash</tt> but the main functions
+which are to do with handling command lines and running processes are related.
+
+<h2>Preliminaries</h2>
+
+<p>
+For this lab, a <i>command line</i> is a series of words on a line terminated
+by a newline character. A word is any sequence of non-whitespace characters
+and words can be separated by any number of whitespace characters.
+A whitespace character is either a blank or a tab.
+<p>
+This definition of a command line is quite similar to what a shell like
+<tt>bash</tt> uses. For example,
+<pre>
+  ls      -al /tmp   .
+</pre>
+There are 4 words, namely: "<tt>ls</tt>", "<tt>-al</tt>", "<tt>/tmp</tt>" and "<tt>.</tt>".
+Typically in a shell,
+the first word of the command line, e.g. "<tt>ls</tt>", gives the name (pathname)
+of the executable to run.
+Some side remarks, in <tt>bash</tt>, 
+some command lines are not commands to execute but rather
+special internal commands to <tt>bash</tt>, 
+e.g. <tt>cd</tt>. Also, not every command line starts
+with the name of a command to execute, e.g. <tt>USER="Batman"</tt>.
+(If you did not understand the remark, it is for when we cover the <tt>bash</tt>
+shell).
+<p>
+You should also be familiar with how the usage syntax of programs
+are typically described, i.e. the command line syntax for using the program.
+The following example slightly modified from <A href="lab.html">Lab 4</A>
+is used:
+<blockquote>
+<tt>fold</tt> [<tt>-bt</tt>] [<tt>-w</tt> <i>width</i>] [<i>file</i>...]
+</blockquote>
+The minus denotes arguments which are options to the program.
+The square brackets means that the argument is optional, i.e. may be
+given or not. 
+If the argument option is a single letter than the possible
+choices are given together,
+so <tt>-bt</tt> covers the possibilities:
+<blockquote>
+<pre>
+fold
+fold -b
+fold -t
+fold -bt
+fold -tb
+fold -t -b
+fold -b -t
+</pre>
+</blockquote>
+Notice that the order is not significant - the option arguments can be
+given in any order. Another example is:
+<blockquote>
+<tt>fold -w 10 -b test</tt>
+</blockquote>
+The last argument with <tt>...</tt> means that there can be many more
+arguments, e.g.
+<tt>fold -w 10 -b file1 file2</tt>.
+There is an implicit ordering between the arguments which are options
+to the program from those which are not. 
+The arguments which are options come first,
+thus, the following is not allowed:
+<blockquote>
+<tt>fold file2 file1 -w 10 -b</tt>
+</blockquote>
+
+<p>
+If you have difficulties with understanding how to processing arguments
+to the program, please try <A href="lab4.html">Lab 4</A>.
+You will find that <tt>atoi(3C)</tt> to be useful to convert strings
+to numbers. There are also many examples of using arguments
+in the sample code. 
+(<i>A general point about the sample code is that
+to shorten the example, sometimes error handling is not done.
+Your code should deal with potential errors. In general, there may
+be test cases to check if you are dealing properly with errors</i>).
+
+<h2>Part 1: A Simple Logging Shell (40 points)</h2>
+
+<p>
+This part is to learn how to directly use the system calls for process
+creation and executing binaries. It also shows you how to create
+a minimal shell - it has almost no features except for running command lines.
+
+<p>
+<b>Task Overview:</b> <br>
+
+Write a program which reads lines either from standard input or a specified
+file <i>scriptfile</i> and runs the command lines in the input.
+It should do this by creating a new process to run the program specified
+in the first word of the command line and supplying the remainder of
+the line as arguments to the program.
+<p>
+The usage syntax is: 
+<blockquote>
+	<tt>lab5-part1</tt> [<tt>-p</tt> <i>searchpath</i>] [<tt>-a</tt>] [<tt>-l</tt> <i>logfile</i>] [<i>scriptfile</i>]
+</blockquote>
+
+The first word on the command line is either:
+<ol>
+	<li> An <i>absolute pathname</i>, i.e. begins with "<tt>/</tt>",
+	for example, <tt>/usr/bin/ls</tt>;
+	<li> or, a <i>relative pathname</i> 
+	beginning with "<tt>./</tt>" or "<tt>../</tt>",
+	for example, <tt>./a.out</tt>;
+	<li> or, the name of a program, e.g. <tt>ls</tt>.
+</ol>
+
+Each command line should be run in a separate process.
+Without <tt>-p</tt>,
+the executable should be either the given absolute or relative pathname.
+With <tt>-p</tt>, it is as described in arguments (below),
+As the input may have many lines, each command line is to executed
+one at a time in sequence. So the next command line is only executed
+after the previous command finishes.
+(<tt>Bash</tt> is also similar).
+A blank line is ignored and so is any line beginning with '<tt>#</tt>' which
+is treated as a comment.
+<p>
+A log of all command lines executed is written out together with 
+the exit status.
+By default, the log is written to <tt>lab5-part1.log</tt>.
+The format of each line in the log corresponding to an executed command line is: 
+<blockquote>
+	<i>exitstatus</i><tt>:</tt> <i>command line</i>
+</blockquote>
+
+For example, if the <tt>lab5-part1</tt> is run as,
+<tt>lab5-part1 test.script</tt>,
+and <tt>test.script</tt> contains:
+<pre class="code">
+# example 1
+
+
+/usr/bin/echo a test
+
+true
+false
+</pre>
+The file <tt>lab5-part1.log</tt> contain the following which are the command lines
+executed and their exit status:
+<pre class="code">
+0: /usr/bin/echo a test
+0: true
+1: false
+</pre>
+
+<p>
+The output of <tt>lab5-part1</tt> is simply whatever is the output of the commands
+executed. For the above example, the output is simply the output from <tt>echo</tt>
+since the other two commands have no output:
+
+<pre class="code">
+a test
+</pre>
+
+The meaning of the options given to your program are the following:
+<ul>
+	<li> <tt>-a</tt>: 
+	stop if the process executed from the command line
+	gives an error exit status, i.e. the exit status is non-zero.
+	If <tt>-a</tt> is not given, then the processing continues even
+	if there is an error exit status.
+	<li> <tt>-l</tt> <i>logfile</i>: instead of the default filename
+	for the log, the log is written to <i>logfile</i>.
+	<li> <tt>-p</tt> <i>searchpath</i>:
+	If the first word of the command is an absolute or relative pathname,
+	then it is tried first. If it fails to execute, i.e. the <tt>exec</tt>
+	system fails, then the program name is tried against the directories
+	in <i>searchpath</i> in left to right order of the <i>searchpath</i>.
+	The format of <i>searchpath</i> is the same as the <tt>PATH</tt> 
+	environment variable. Note that <tt>PATH</tt> is not used in Part 1.
+</ul>
+
+The exit status of <tt>lab5-part1</tt> is the exit status of the last
+executed command or 0 if there are no commands.
+
+<p>
+<strong>Requirements and Assumptions</strong><br/>
+A special requirement (<i>given the pedagogical purpose of the lab</i>) 
+is that you <b>must</b> execute the command
+using one of the <tt>exec</tt> family of system calls.
+While it is possible to use your line processing code from Lab 3, to
+simplify this lab (furthermore,  your Lab 3 code may have bugs), 
+you can assume that the maximum length of a line is 255 characters 
+not counting the newline.
+
+<p>
+<strong>Hints</strong><br/>
+<ul>
+	<li> An example of a simple shell is in the sample programs as
+	<tt>U-16-mysh1.c</tt>. While the task is different, it shows you
+	all the basic elements of a simple shell and those also apply here.
+	<li> In order to meet the sequential command line execution requirement,
+	you need to wait until the process running the command line is
+	finished which can be done using the <tt>wait</tt> family of
+	system calls.
+</ul>
+
+<h2>Part 2: A Software Testing Utility (60 points)</h2>
+
+In Part 1, you developed a simple shell. Part 2 extends this idea
+and you also learn the <tt>system(3C)</tt> library function.
+<p>
+A shell program, i.e. a shell script using <tt>bash</tt>, 
+might be used for testing a program.
+For example, you may have test cases which are automatically run and checked
+to see if the output is correct by using a script to run the test program on
+its test case inputs and also compare the output for correctness. 
+Often it will be useful to use I/O redirection of the shell to make
+it more convenient to use different inputs and save the outputs.
+However, as we have not covered I/O redirection yet, the
+<tt>system(3C)</tt> function gives a handy way of using the features
+of the <tt>bash</tt> shell to run programs.
+<p>
+The syntax of <tt>lab5-part2</tt> is:
+<blockquote>
+	<tt>lab5-part2</tt> [<tt>-c</tt> <i>testconfig</i>] [<i>prog</i> ...]
+</blockquote>
+
+<tt>lab5-part2</tt> is controlled by a specified configuration file
+which we call <i>testconfig</i> and is either on the command line or from
+<tt>stdin</tt>. Testconfig gives the tests to be run together with
+the inputs and expected outputs. The remainder of
+the command line gives the executables of the programs
+to be tested, e.g. <i>prog</i>.  
+<blockquote>
+<b>
+Programs to be tested expect their input from <tt>stdin</tt> and their
+output which is checked for correctness by <tt>lab5-part2</tt>
+goes to <tt>stdout</tt>.
+</b>
+</blockquote>
+A summary of the test results are output by <tt>lab5-part2</tt> to 
+<tt>stdout</tt> (see below).
+You can also think of
+<tt>lab5-part2</tt> as being an auto-grading program for cs2281 submissions!
+
+<p>
+The format of the testconfig gives
+the total number of tests followed by a sequence of tests to be done. 
+The syntax of a <i>single test</i> is
+given by the following self-explanatory example
+<pre class="code">
+# this is the base test
+test 1
+input &lt;EOF
+line1
+line2
+EOF
+output &lt;EOF
+output1
+output2
+output3
+EOF
+</pre>
+A line starting with hash is a comment which is ignored.
+The "<tt>test</tt>" <i>i</i> line indicates the <i>i</i>-th test
+and the input for the test is the two lines, "<tt>line1</tt>"
+and "<tt>line2</tt>", with expected output being 
+"<tt>output1</tt>",
+"<tt>output2</tt>" and
+"<tt>output3</tt>".
+The output from the test program matches the expected output only if it
+is exactly the same.
+The "<tt>&lt;EOF</tt>" and "<tt>EOF</tt>" lines are used as way to denote 
+start and end of input or output as follows:
+<ol>
+<li>
+A line with "<tt>input</tt> &lt;<i>pattern</i>" for an input test or
+"<tt>output</tt> &lt;<i>pattern</i>" for an output test.
+The <i>pattern</i> is just a word.
+<li> Some number of lines which are the actual input or output for the test.
+<li> The end of input or output is defined by a line containing just <i>pattern</i>.
+</ol>
+
+Thus, in the example <tt>EOF</tt> can be any word 
+which does not occur in the input (respectively, the output).
+For example, if the word "<tt>EOF</tt>" can occur 
+in the output but not the word "<tt>THEEND</tt>", then one can use:
+<pre class="code">
+# this is the base test
+test 1
+# test 1 input - does not contain THEEND
+input &lt;THEEND
+line1
+EOF
+line2
+THEEND
+# test 1 expected output - does not contain EOF
+output &lt;EOF
+output1
+THEEND
+output3
+EOF
+</pre>
+This syntax is purposely designed for the flexibility to easily
+delimit the input/output lines. It is also similar to what is in
+<tt>bash</tt> (although <tt>bash</tt> uses <tt>&lt;&lt;</tt> while we use
+a single <tt>&lt;</tt>).
+The testconfig input then consists of a sequence of these tests.
+The test number is simply for legibility and can be ignored so there
+is no need to check whether the tests are numbered properly.
+<p>
+Suppose we want to test the <tt>wc</tt> program using the above test input.
+The expected output will give the following test case:
+<pre class="code">
+# wc testconfig
+# test input - 3 lines, 3 words, 16 chars
+input &lt;THEEND
+line1
+EOF
+line2
+THEEND
+# expected output from wc
+output &lt;EOF
+       3       3      16
+EOF
+</pre>
+So in this example, this test uses the following fixed input to <tt>wc</tt>:
+<pre class="code">
+line1
+EOF
+line2
+</pre>
+and it expects that <tt>wc</tt> should give the output:
+<pre class="code">
+       3       3      16
+</pre>
+
+<p>
+So far, we have only described a single test case. The testconfig file can
+have multiple test cases and multiple programs can be tested.
+Let's us expand the single test case by adding one more case for <tt>wc</tt> 
+into a full testconfig file:
+<pre class="code">
+# wc testconfig
+total 2
+# test 1 input - 3 lines, 3 words, 16 chars
+test 1
+input &lt;THEEND
+line1
+EOF
+line2
+THEEND
+# expected output from wc
+output &lt;EOF
+       3       3      16
+EOF
+# test 2 input - 1 line, 2 words, 5 chars
+test 2
+input &lt;EOF
+1 23
+EOF
+output &lt;EOF
+       1       2       5
+EOF
+</pre>
+The line <tt>total 2</tt> means there a total of two tests.
+Suppose we run as:
+<blockquote>
+<tt>$ lab5-part2 wc &lt;testconfig</tt>
+</blockquote>
+The output of <tt>lab5-part2</tt>
+will be a summary of which tests are passed as follows:
+<pre class="code">
+wc: 1 1
+</pre>
+
+The following example shows using multiple test programs. Suppose the command
+line is:
+<blockquote>
+<tt>
+$ lab5-part2 -c testconfig ./prog1 ./prog2 
+</tt>
+</blockquote>
+The command line specifies that
+the executables to be tested are <tt>./prog1</tt> and <tt>./prog2</tt>
+using the tests defined in <tt>testconfig</tt>.
+You can assume that the executables can be found in the <tt>PATH</tt>
+environment variable (unlike Part 1). Suppose <tt>testconfig</tt> contains:
+<pre class="code">
+total 2
+# this is the base test
+test 1
+input &lt;EOF
+line1
+EOF
+output &lt;EOF
+LINE1
+EOF
+# another test
+test 2
+input &lt;EOF
+EOF
+output &lt;EOF
+EOF
+</pre>
+For test 1, we expect the output to be "<tt>LINE1</tt>"
+given input "<tt>line1</tt>", while for test 2, we expect
+empty output given empty input. Suppose what happens is the following:
+<ol>
+	<li> <tt>prog1</tt> is run with the test 1 input and its output
+	is checked against the expected output. Suppose the output
+       is exactly the same as the expected output.
+	<li> <tt>prog1</tt> is run with the test 2 input and its output
+	is checked against the expected output. Suppose the output differs
+	from the expected output.
+	<li> <tt>prog2</tt> is run with the test 1 input and its output differs.
+	<li> <tt>prog2</tt> is run with the test 2 input and its output 
+	is as expected.
+</ol>
+The output of <tt>lab5-part2</tt> which is to <tt>stdout</tt> is
+a summary of the test results for each program. For the above example, the output is:
+<pre class="code">
+./prog1: 1 0
+./prog2: 0 1
+</pre>
+This is because <tt>prog1</tt> passed test 1 and failed on test 2
+while <tt>prog2</tt> was the opposite.
+Notice that the filenames in the summary are the programs given to
+<tt>lab5-part2</tt> in the command line.
+<p>
+<strong>Assumptions</strong><br/>
+You can assume that the testconfig input is syntactically correct following
+the syntax in the examples above.
+The same line length assumption of Part 1 applies.
+
+<p>
+<strong>Hints</strong><br/>
+<ul>
+	<li> You should use <tt>system(3C)</tt> (please see section 3C
+	of the <tt>man</tt>). Actually you do not need to use <tt>system()</tt>
+	but it will be much easier to do so, hence, the recommendation.
+	<li> Take note that input and output of <tt>lab5-part2</tt>
+	is different from the input and output of the program being tested,
+	e.g. <tt>prog1</tt>.
+	<li> You may need temporary files, <tt>tmpfile(3C)</tt> can be used.
+	<li> Although the specification seems complex, you will find that
+	it not as complex as you may think after some thought on the 
+	design of part 2.
+</ul>
+
+<h2>Part 3: Timeout for Part 2 (Optional part, Bonus: 8 Marks) </h2>
+
+<p>
+This should only be attempted if Part 2 is working. Full marks will only
+be given if Part 2 meets all our tests.
+<p>
+Part 3 extends Part 2 with a timeout feature. It adds a new
+option: <tt>-t timer</tt>. The usage syntax is now:
+<blockquote>
+	<tt>lab5-part3</tt> [<tt>-t</tt> <i>timer</i>]
+	[<tt>-c</tt> <i>testconfig</i>] <i>prog</i> ...
+</blockquote>
+The unit of <i>timer</i> is in seconds.
+<p>
+The timeout option will let a process run for up to a time limit of <i>timer</i> seconds.
+If the time limit is exceeded, the process is terminated and the result of the test is
+recorded as -1. Otherwise, it is the same as in Part 2.
+
+<p>
+There are many ways to do this task and this optional part is really
+for students who want to experiment further with Unix on their own,
+thus, there are no hints given. Also the bonus is smaller for the same reason
+(<i>ideally you should be exploring on your own anyway 
+without any tie to grading</i>).
+
+<h2>Grading + Submission Summary</h2>
+
+
+Submit the following in a single zip file with the filename
+<i>yourmatricno-</i>lab5.zip, e.g. if your matric number is U123X, then
+U123X-lab5.zip. Note the user of Uppercase in the matric number.
+<b>You should add in a comment block to each file at the start</b>: 
+Name, Matric, Email.
+<ul>
+<li> Part 1: <i>yourmatricno</i>-lab5-part1.c</t>, 40 marks
+<li> Part 2: <i>yourmatricno</i>-lab5-part2.c</t>, 60 marks
+<li> Part 3: <i>yourmatricno</i>-lab5-part3.c</t>, bonus 8 marks
+</ul>
+
+</html>
