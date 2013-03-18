@@ -51,16 +51,19 @@ int main(int argc, char** argv){
 	int argSize;
 	int forkReturn;
 	char **args;
+	int length;
 	while(fgets(command, 255, script) != NULL){
 		if(command[0] == '#' || strlen(command) == 1){
 			continue;
 		}
 		else{
+			length = strlen(command);
+			command[length - 1] = '\0';
 			pID = fork();
 			if(pID == 0){
 				//child process, run
 				argSize = splitCommand(args, command);
-				execv(args[0], (char**)args[1]);
+				execv(args[0], args);
 				exit(-1);
 			}
 			else if(pID < 0){
@@ -68,8 +71,10 @@ int main(int argc, char** argv){
 				exit(EXIT_FAILURE);
 			}
 			else{
+				argSize = splitCommand(args, command);
+				printf("%s\n", args[0]);
 				waitpid(pID, &status, 0);
-				fprintf(logFileOutput, "%hd: %s", WEXITSTATUS(status), command);
+				fprintf(logFileOutput, "%d: %s\n", WEXITSTATUS(status), command);
 				if(stopOnError != 0 && WEXITSTATUS(status) != 0){
 					printf("%d\n", status);
 					exit(status);
@@ -94,7 +99,7 @@ int splitCommand(char **args, char *command){
 		tmpargs = realloc(args, argSize * sizeof(char*));
 		if(tmpargs != NULL){
 			args = tmpargs;
-			args[argSize - 1] = tmp;
+			args[argSize - 1] = strdup(tmp);
 		}
 		else{
 			exit(EXIT_FAILURE);
@@ -107,7 +112,7 @@ int splitCommand(char **args, char *command){
 		args = tmpargs;
 		args[argSize - 1] = NULL;
 	}
-	else{
+	else{ 
 		exit(EXIT_FAILURE);
 	}
 	return argSize;
