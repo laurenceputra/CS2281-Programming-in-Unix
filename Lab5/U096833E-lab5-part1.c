@@ -3,11 +3,14 @@
 #include <stdlib.h>
 #include <string.h>
 
+int splitCommand(char **args, char *command);
+
 int main(int argc, char** argv){
 	int option, searchpathSize = 0;
 	char **searchpaths, **tmpSearchPaths, *logfile, *scriptFile, *tmpSearchPath;
 	char command[255];
 	int stopOnError = 0, searchArg = 0, logArg = 0;
+	logfile = "lab5-part1.log";
 	while((option = getopt(argc, argv, "p:a::l:")) != -1){
 		switch(option){
 			case 'p':
@@ -42,6 +45,70 @@ int main(int argc, char** argv){
 	}
 	scriptFile = argv[argc - 1];
 	FILE *script = fopen(scriptFile, "r");
+	FILE *logFileOutput = fopen(logfile, "w");
+	pid_t pID = 0;
+	int status;
+	int argSize;
+	int forkReturn;
+	char **args;
+	while(fgets(command, 255, script) != NULL){
+		if(command[0] == '#' || strlen(command) == 1){
+			continue;
+		}
+		else{
+			pID = fork();
+			if(pID == 0){
+				//child process, run
+				argSize = splitCommand(args, command);
+				//execv(args[0], (char**)args[1]);
+				printf("%s %s\n", args[0], args[1]);
+				exit(-1);
+			}
+			else if(pID < 0){
+				fprintf(stderr, "Forking failed\nTerminating\n");
+				exit(EXIT_FAILURE);
+			}
+			else{
+				waitpid(pID, &status);
+				fprintf(logFileOutput, "%hd: %s", WEXITSTATUS(status), command);
+				if(stopOnError != 0 && WEXITSTATUS(status) != 0){
+					printf("%d\n", status);
+					exit(status);
+				}
+			}
+		}
+	}
+	return status;
+}
 
-	return 0;
+/***********************
+ * Command is passed in through command variable
+ * args variable is overwritten
+***********************/
+int splitCommand(char **args, char *command){
+	int argSize = 0;
+	char *tmp = strtok(command, " ");
+	char **tmpargs;
+	args = malloc(0);
+	while(tmp != NULL){
+		argSize++;
+		tmpargs = realloc(args, argSize * sizeof(char*));
+		if(tmpargs != NULL){
+			args = tmpargs;
+			args[argSize - 1] = tmp;
+		}
+		else{
+			exit(EXIT_FAILURE);
+		}
+	}
+	argSize++;
+	tmpargs = realloc(args, argSize * sizeof(char*));
+	if(tmpargs != NULL){
+		args = tmpargs;
+		args[argSize - 1] = NULL;
+	}
+	else{
+		exit(EXIT_FAILURE);
+	}
+	return argSize;
 }
