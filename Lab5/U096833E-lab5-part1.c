@@ -49,8 +49,8 @@ int main(int argc, char** argv){
 	pid_t pID = 0;
 	int status;
 	int argSize;
-	int forkReturn;
-	char **args;
+	char *args[128];
+	char *token;
 	int length;
 	while(fgets(command, 255, script) != NULL){
 		if(command[0] == '#' || strlen(command) == 1){
@@ -62,7 +62,24 @@ int main(int argc, char** argv){
 			pID = fork();
 			if(pID == 0){
 				//child process, run
-				argSize = splitCommand(args, command);
+				argSize = 0;
+				token = strtok(command, " ");
+				while(token != NULL){
+					args[argSize] = strdup(token);
+					argSize++;
+					token = strtok(NULL, " ");
+				}
+				args[argSize] = NULL;
+				int i;
+				for(i = 0; i < 128; i++){
+					if(args[i] != NULL){
+						printf("%s\n", args[i]);
+					}
+					else{
+						printf("\n");
+						break;
+					}
+				}
 				execv(args[0], args);
 				exit(-1);
 			}
@@ -70,11 +87,10 @@ int main(int argc, char** argv){
 				fprintf(stderr, "Forking failed\nTerminating\n");
 				exit(EXIT_FAILURE);
 			}
-			else{
-				argSize = splitCommand(args, command);
-				printf("%s\n", args[0]);
+			else if(pID > 0){
 				waitpid(pID, &status, 0);
 				fprintf(logFileOutput, "%d: %s\n", WEXITSTATUS(status), command);
+				fflush(logFileOutput);
 				if(stopOnError != 0 && WEXITSTATUS(status) != 0){
 					printf("%d\n", status);
 					exit(status);
@@ -82,6 +98,8 @@ int main(int argc, char** argv){
 			}
 		}
 	}
+	fclose(script);
+	fclose(logFileOutput);
 	return status;
 }
 
@@ -104,6 +122,8 @@ int splitCommand(char **args, char *command){
 		else{
 			exit(EXIT_FAILURE);
 		}
+		printf("%s\n", args[0]);
+
 		tmp = strtok(NULL, " ");
 	}
 	argSize++;

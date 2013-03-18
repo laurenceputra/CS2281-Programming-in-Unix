@@ -1,0 +1,4 @@
+0: /bin/ls
+0: /bin/echo a test
+255: true
+255: false

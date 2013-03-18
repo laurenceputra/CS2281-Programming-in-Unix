@@ -1,4 +1,7 @@
+# example 1
+
 /bin/ls
-ls
+/bin/echo a test
+
 true
 false
