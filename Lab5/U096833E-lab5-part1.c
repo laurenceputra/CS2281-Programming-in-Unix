@@ -2,6 +2,7 @@
 #include <unistd.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sys/wait.h>
 
 int splitCommand(char **args, char *command);
 
@@ -80,8 +81,9 @@ int main(int argc, char** argv){
 						break;
 					}
 				}
-				execv(args[0], args);
-				exit(-1);
+				int execRet = execv(args[0], args);
+				printf("execv fail:%d %s\n", execRet, args[0]);
+				exit(execRet);
 			}
 			else if(pID < 0){
 				fprintf(stderr, "Forking failed\nTerminating\n");
