@@ -60,8 +60,7 @@ int main(int argc, char** argv){
 			if(pID == 0){
 				//child process, run
 				argSize = splitCommand(args, command);
-				//execv(args[0], (char**)args[1]);
-				printf("%s %s\n", args[0], args[1]);
+				execv(args[0], (char**)args[1]);
 				exit(-1);
 			}
 			else if(pID < 0){
