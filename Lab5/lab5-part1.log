@@ -1,1 +1,4 @@
-127: /bin/ls
+0: /bin/ls
+0: ls
+0: true
+0: false

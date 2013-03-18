@@ -69,7 +69,7 @@ int main(int argc, char** argv){
 				exit(EXIT_FAILURE);
 			}
 			else{
-				waitpid(pID, &status);
+				waitpid(pID, &status, 0);
 				fprintf(logFileOutput, "%hd: %s", WEXITSTATUS(status), command);
 				if(stopOnError != 0 && WEXITSTATUS(status) != 0){
 					printf("%d\n", status);
@@ -100,6 +100,7 @@ int splitCommand(char **args, char *command){
 		else{
 			exit(EXIT_FAILURE);
 		}
+		tmp = strtok(NULL, " ");
 	}
 	argSize++;
 	tmpargs = realloc(args, argSize * sizeof(char*));
