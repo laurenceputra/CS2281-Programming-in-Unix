@@ -55,97 +55,98 @@ int main(int argc, char** argv){
 		FILE *configFile = fopen(config, "r");
 		FILE *stdInput, *stdOutput;
 		fprintf(stdout, "%s:", progList[i]);
+		fflush(stdout);
 		while(fgets(tmp, BUFFERSIZE, configFile)){
-			if(newline == 0){
-				if (tmp[strlen(tmp) - 1] != '\n'){
-					newline = 1;
+			if(tmp[0] == '#'){
+				continue;
+			}
+			memcpy(compare, tmp, 4);
+			compare[4] = '\0';
+			if(strcmp(compare, "test") == 0){
+				continue;
+			}
+			memcpy(compare, tmp, 5);
+			compare[5] = '\0';
+			if(inputStart == 0 && strcmp(compare, "input") == 0){
+				stdInput = fopen(inputFile, "w");
+				inputStart = 1;
+				tmpDelimiter = strtok(tmp, "<");
+				while(tmpDelimiter != NULL){
+					delimiter = strdup(tmpDelimiter);
+					tmpDelimiter = strtok(NULL, "<");
 				}
-				if(tmp[0] == '#'){
-					continue;
+				continue;
+			}
+			if(inputStart == 1){
+				if(strcmp(tmp, delimiter) == 0){
+					inputStart = 0;
+					fclose(stdInput);
 				}
-				memcpy(compare, tmp, 4);
-				compare[4] = '\0';
-				if(strcmp(compare, "test") == 0){
-					continue;
+				else{
+					fputs(tmp, stdInput);
 				}
-				memcpy(compare, tmp, 5);
-				compare[5] = '\0';
-				if(inputStart == 0 && strcmp(compare, "input") == 0){
-					stdInput = fopen(inputFile, "w");
-					inputStart = 1;
-					tmpDelimiter = strtok(tmp, "<");
-					while(tmpDelimiter != NULL){
-						delimiter = strdup(tmpDelimiter);
-						tmpDelimiter = strtok(NULL, "<");
+				
+				continue;
+			}
+			memcpy(compare, tmp, 6);
+			compare[6] = '\0';
+			if(outputStart == 0 && strcmp(compare, "output") == 0){
+				stdOutput = fopen(outputFile, "w");
+				if(stdOutput == NULL){
+					fprintf(stderr, "Output file cannot be opened!\n");
+				}
+				outputStart = 1;
+				tmpDelimiter = strtok(tmp, "<");
+				while(tmpDelimiter != NULL){
+					delimiter = strdup(tmpDelimiter);
+					tmpDelimiter = strtok(NULL, "<");
+				}
+				continue;
+			}
+			if(outputStart == 1){
+				if(strcmp(tmp, delimiter) == 0){
+					fclose(stdOutput);
+					outputStart = 0;
+					//start running
+					pID = fork();
+					if(pID == 0){
+						//child process does stuff
+						//printf("%s\n", strcat(strcat(strdup(progList[i]), strcat(strdup(" < "), strdup(inputFile))) , strcat(strdup(" > "), stdOutputFile)));
+						system(strcat(strcat(strdup(progList[i]), strcat(strdup(" < "), strdup(inputFile))) , strcat(strdup(" > "), stdOutputFile)));
+						return 0;
 					}
-					continue;
-				}
-				if(inputStart == 1){
-					if(strcmp(tmp, delimiter) == 0){
-						inputStart = 0;
-						fclose(stdInput);
+					else if(pID < 0){
+						fprintf(stderr, "Forking failed\nTerminating\n");
+						exit(EXIT_FAILURE);
 					}
 					else{
-						fputs(tmp, stdInput);
-					}
-					
-					continue;
-				}
-				memcpy(compare, tmp, 6);
-				compare[6] = '\0';
-				if(outputStart == 0 && strcmp(compare, "output") == 0){
-					stdOutput = fopen(inputFile, "rw");;
-					outputStart = 1;
-					tmpDelimiter = strtok(tmp, "<");
-					while(tmpDelimiter != NULL){
-						delimiter = strdup(tmpDelimiter);
-						tmpDelimiter = strtok(NULL, "<");
-					}
-					continue;
-				}
-				if(outputStart == 1){
-					if(strcmp(tmp, delimiter) == 0){
-						fclose(stdOutput);
-						outputStart = 0;
-						//start running
-						pID = fork();
-						if(pID == 0){
-							//child process does stuff
-							system(strcat(strdup(progList[i]), strcat(" < ", strcat(inputFile, strcat(" > ", stdOutputFile)))));
-							return 0;
-						}
-						else if(pID < 0){
-							fprintf(stderr, "Forking failed\nTerminating\n");
-							exit(EXIT_FAILURE);
+						//wait for child to be done, and compare
+						waitpid(pID, &status, 0);
+						//compare
+						outputCompare = compareFiles(stdOutputFile, outputFile);
+						if(outputCompare == 0){
+							fprintf(stdout, " %d", 1);
 						}
 						else{
-							//wait for child to be done, and compare
-							waitpid(pID, &status, 0);
-							//compare
-							outputCompare = compareFiles(stdOutputFile, outputFile);
-							if(outputCompare == 0){
-								fprintf(stdout, " %d", 1);
-							}
-							else{
-								fprintf(stdout, " %d", 0);
-							}
+							fprintf(stdout, " %d", 0);
 						}
-						
+						fflush(stdout);
 					}
-					else{
-						fputs(tmp, stdOutput);
-					}
+					
+				}
+				else{
+					fputs(tmp, stdOutput);
 				}
 			}
 		}
 		fprintf(stdout, "\n");
 		fclose(configFile);
 		if(configOn == 1){
-			remove(config);
+			//remove(config);
 		}
-		remove(inputFile);
-		remove(outputFile);
-		remove(stdOutputFile);
+		//remove(inputFile);
+		//remove(outputFile);
+		//remove(stdOutputFile);
 	}
 
 	return status;
@@ -154,5 +155,21 @@ int main(int argc, char** argv){
 
 //Compare 2 files
 int compareFiles(char *fileOne, char *fileTwo){
+	FILE *fileLinkOne = fopen(fileOne, "r");
+	FILE *fileLinkTwo = fopen(fileTwo, "r");
+	char tmp1[255], tmp2[255];
+	char *readOne, *readTwo;
+	readOne = fgets(tmp1, 255, fileLinkOne);
+	readTwo = fgets(tmp2, 255, fileLinkTwo);
+	while(readOne != NULL && readTwo != NULL){
+		if(strcmp(tmp1, tmp2) != 0){
+			return 1;
+		}
+		readOne = fgets(tmp1, 255, fileLinkOne);
+		readTwo = fgets(tmp2, 255, fileLinkTwo);
+	}
+	if(readOne != NULL || readTwo != NULL){
+		return 1;
+	}
 	return 0;
 }
