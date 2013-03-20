@@ -23,6 +23,10 @@ int main(int argc, char** argv){
 						searchpaths = tmpSearchPaths;
 						searchpaths[searchpathSize - 1] = strcat(strdup(tmpSearchPath), "/");
 					}
+					else{
+						fprintf(stderr, "Unable to realloc!\n", );
+						exit(EXIT_FAILURE);
+					}
 					
 					tmpSearchPath = strtok(NULL, ":");
 				}
