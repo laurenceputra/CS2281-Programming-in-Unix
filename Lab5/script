@@ -3,5 +3,8 @@
 /bin/ls
 /bin/echo a test
 
+/bin/true
+/bin/false
+
 true
 false

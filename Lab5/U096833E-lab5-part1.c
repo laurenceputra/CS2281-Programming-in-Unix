@@ -64,26 +64,32 @@ int main(int argc, char** argv){
 			if(pID == 0){
 				//child process, run
 				argSize = 0;
-				token = strtok(command, " ");
+				char *remaining;
+				token = strtok_r(command, " ", &remaining);
 				while(token != NULL){
 					args[argSize] = strdup(token);
 					argSize++;
-					token = strtok(NULL, " ");
+					token = strtok_r(NULL, " ", &remaining);
 				}
 				args[argSize] = NULL;
-				int i;
-				for(i = 0; i < 128; i++){
-					if(args[i] != NULL){
-						printf("%s\n", args[i]);
-					}
-					else{
-						printf("\n");
-						break;
+				char *tmpChar = strchr(args[0], '/');
+				if (tmpChar == NULL){
+					int counter;
+					for(counter = 0; counter < searchpathSize; counter++){
+						execv(strcat(strdup(searchpaths[counter]), args[0]), args);
 					}
 				}
-				int execRet = execv(args[0], args);
-				printf("execv fail:%d %s\n", execRet, args[0]);
-				exit(execRet);
+				else{
+					token = strtok(command, "/");
+					while(token != NULL){
+						tmpChar = token;
+						token = strtok(NULL, "/");
+					}
+					token = strdup(args[0]);
+					args[0] = strdup(tmpChar);
+					execv(token, args);
+				}
+				exit(127);
 			}
 			else if(pID < 0){
 				fprintf(stderr, "Forking failed\nTerminating\n");
