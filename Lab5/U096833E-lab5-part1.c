@@ -4,8 +4,6 @@
 #include <string.h>
 #include <sys/wait.h>
 
-int splitCommand(char **args, char *command);
-
 int main(int argc, char** argv){
 	int option, searchpathSize = 0;
 	char **searchpaths, **tmpSearchPaths, *logfile, *scriptFile, *tmpSearchPath;
@@ -23,7 +21,7 @@ int main(int argc, char** argv){
 					tmpSearchPaths = realloc(searchpaths, searchpathSize * sizeof(char*));
 					if(tmpSearchPath != NULL){
 						searchpaths = tmpSearchPaths;
-						searchpaths[searchpathSize - 1] = tmpSearchPath;
+						searchpaths[searchpathSize - 1] = strcat(strdup(tmpSearchPath), "/");
 					}
 					
 					tmpSearchPath = strtok(NULL, ":");
@@ -109,39 +107,4 @@ int main(int argc, char** argv){
 	fclose(script);
 	fclose(logFileOutput);
 	return status;
-}
-
-/***********************
- * Command is passed in through command variable
- * args variable is overwritten
-***********************/
-int splitCommand(char **args, char *command){
-	int argSize = 0;
-	char *tmp = strtok(command, " ");
-	char **tmpargs;
-	args = malloc(0);
-	while(tmp != NULL){
-		argSize++;
-		tmpargs = realloc(args, argSize * sizeof(char*));
-		if(tmpargs != NULL){
-			args = tmpargs;
-			args[argSize - 1] = strdup(tmp);
-		}
-		else{
-			exit(EXIT_FAILURE);
-		}
-		printf("%s\n", args[0]);
-
-		tmp = strtok(NULL, " ");
-	}
-	argSize++;
-	tmpargs = realloc(args, argSize * sizeof(char*));
-	if(tmpargs != NULL){
-		args = tmpargs;
-		args[argSize - 1] = NULL;
-	}
-	else{ 
-		exit(EXIT_FAILURE);
-	}
-	return argSize;
 }
