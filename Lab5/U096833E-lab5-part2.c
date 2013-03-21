@@ -1,3 +1,5 @@
+//When I wrote this, only the compiler and I understood what I was doing
+//Now, only the compiler knows
 #include <stdio.h>
 #include <unistd.h>
 #include <stdlib.h>
@@ -5,7 +7,7 @@
 #include <sys/wait.h>
 
 #define BUFFERSIZE 256
-#define FAILUREATTEMPTS 5
+
 int compareFiles(FILE *fileLinkOne, char* fileOne, char *fileTwo);
 
 int main(int argc, char** argv){
