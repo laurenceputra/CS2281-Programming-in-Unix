@@ -5,12 +5,12 @@
 #include <sys/wait.h>
 
 #define BUFFERSIZE 256
-
-int compareFiles(char *fileOne, char *fileTwo);
+#define FAILUREATTEMPTS 5
+int compareFiles(FILE *fileLinkOne, char* fileOne, char *fileTwo);
 
 int main(int argc, char** argv){
 	int option, configOn = 0, inputStart = 0, outputStart = 0, newline = 0, numArgs = 0, numApps = 0, i;
-	int outputCompare = 0, status;
+	int outputCompare = 0, status, fileFailCounter;
 	char *prog, *config = NULL;
 	char *stdOutputFile = "__stdOutputFile__", *inputFile = "__inputFile__", *outputFile = "__outputFile__";
 	char *delimiter, *tmpDelimiter;
@@ -35,6 +35,15 @@ int main(int argc, char** argv){
 	if(config == NULL){
 		config = "tmpConfig";
 		FILE *tmpConfigFile = fopen(config, "w");
+		fileFailCounter = 0;
+		while(tmpConfigFile == NULL){
+			if(fileFailCounter > FAILUREATTEMPTS){
+				fprintf(stderr, "Unable to open: %s\n", config);
+				exit(EXIT_FAILURE);
+			}
+			tmpConfigFile = fopen(config, "w");
+			fileFailCounter++;
+		}
 		while(fgets(tmp, BUFFERSIZE, stdin) != NULL){
 			fputs(tmp, tmpConfigFile);
 		}
@@ -51,9 +60,10 @@ int main(int argc, char** argv){
 		progList = tmpProgList;
 		progList[numApps - 1] = argv[i];
 	}
+	FILE *configFile = fopen(config, "r");
+	FILE *stdInput = fopen(inputFile, "w"), *stdOutput = fopen(outputFile, "w");
 	for(i = 0; i < numApps; i++){
-		FILE *configFile = fopen(config, "r");
-		FILE *stdInput, *stdOutput;
+		configFile = fopen(config, "r");
 		fprintf(stdout, "%s:", progList[i]);
 		fflush(stdout);
 		while(fgets(tmp, BUFFERSIZE, configFile)){
@@ -68,7 +78,7 @@ int main(int argc, char** argv){
 			memcpy(compare, tmp, 5);
 			compare[5] = '\0';
 			if(inputStart == 0 && strcmp(compare, "input") == 0){
-				stdInput = fopen(inputFile, "w");
+				stdInput = freopen(inputFile, "w", stdInput);
 				inputStart = 1;
 				tmpDelimiter = strtok(tmp, "<");
 				while(tmpDelimiter != NULL){
@@ -80,18 +90,18 @@ int main(int argc, char** argv){
 			if(inputStart == 1){
 				if(strcmp(tmp, delimiter) == 0){
 					inputStart = 0;
-					fclose(stdInput);
 				}
 				else{
 					fputs(tmp, stdInput);
 				}
+				fflush(stdInput);
 				
 				continue;
 			}
 			memcpy(compare, tmp, 6);
 			compare[6] = '\0';
 			if(outputStart == 0 && strcmp(compare, "output") == 0){
-				stdOutput = fopen(outputFile, "w");
+				stdOutput = freopen(outputFile, "w", stdOutput);
 				if(stdOutput == NULL){
 					fprintf(stderr, "Output file cannot be opened!\n");
 				}
@@ -105,7 +115,6 @@ int main(int argc, char** argv){
 			}
 			if(outputStart == 1){
 				if(strcmp(tmp, delimiter) == 0){
-					fclose(stdOutput);
 					outputStart = 0;
 					//start running
 					pID = fork();
@@ -123,7 +132,7 @@ int main(int argc, char** argv){
 						//wait for child to be done, and compare
 						waitpid(pID, &status, 0);
 						//compare
-						outputCompare = compareFiles(stdOutputFile, outputFile);
+						outputCompare = compareFiles(stdOutput, outputFile, stdOutputFile);
 						if(outputCompare == 0){
 							fprintf(stdout, " %d", 1);
 						}
@@ -136,26 +145,30 @@ int main(int argc, char** argv){
 				}
 				else{
 					fputs(tmp, stdOutput);
+					fflush(stdOutput);
 				}
 			}
 		}
 		fprintf(stdout, "\n");
-		fclose(configFile);
-		remove(stdOutputFile);
+		//remove(stdOutputFile);
 	}
+	fclose(configFile);
 	if(configOn != 1){
 		remove(config);
 	}
+
+	fclose(stdInput);
+	fclose(stdOutput);
 	remove(inputFile);
-	remove(outputFile);
+	//remove(outputFile);
 
 	return status;
 }
 
 
 //Compare 2 files
-int compareFiles(char *fileOne, char *fileTwo){
-	FILE *fileLinkOne = fopen(fileOne, "r");
+int compareFiles(FILE *fileLinkOne, char* fileOne, char *fileTwo){
+	fileLinkOne = freopen(fileOne, "r", fileLinkOne);
 	FILE *fileLinkTwo = fopen(fileTwo, "r");
 	char tmp1[255], tmp2[255];
 	char *readOne, *readTwo;
