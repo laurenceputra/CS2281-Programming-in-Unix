@@ -141,12 +141,12 @@ int main(int argc, char** argv){
 		}
 		fprintf(stdout, "\n");
 		fclose(configFile);
-		if(configOn != 1){
-			remove(config);
-		}
 		remove(inputFile);
 		remove(outputFile);
 		remove(stdOutputFile);
+	}
+	if(configOn != 1){
+		remove(config);
 	}
 
 	return status;
