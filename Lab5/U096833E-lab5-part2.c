@@ -37,15 +37,6 @@ int main(int argc, char** argv){
 	if(config == NULL){
 		config = "tmpConfig";
 		FILE *tmpConfigFile = fopen(config, "w");
-		fileFailCounter = 0;
-		while(tmpConfigFile == NULL){
-			if(fileFailCounter > FAILUREATTEMPTS){
-				fprintf(stderr, "Unable to open: %s\n", config);
-				exit(EXIT_FAILURE);
-			}
-			tmpConfigFile = fopen(config, "w");
-			fileFailCounter++;
-		}
 		while(fgets(tmp, BUFFERSIZE, stdin) != NULL){
 			fputs(tmp, tmpConfigFile);
 		}
@@ -186,5 +177,6 @@ int compareFiles(FILE *fileLinkOne, char* fileOne, char *fileTwo){
 	if(readOne != NULL || readTwo != NULL){
 		return 1;
 	}
+	fclose(fileLinkTwo);
 	return 0;
 }
