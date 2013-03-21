@@ -8,7 +8,7 @@
 
 #define BUFFERSIZE 256
 
-int compareFiles(FILE *fileLinkOne, char* fileOne, char *fileTwo);
+int compareFiles(FILE *fileLinkOne, char* fileOne, FILE *fileLinkTwo, char *fileTwo);
 
 int main(int argc, char** argv){
 	int option, configOn = 0, inputStart = 0, outputStart = 0, newline = 0, numArgs = 0, numApps = 0, i;
@@ -55,6 +55,7 @@ int main(int argc, char** argv){
 	}
 	FILE *configFile = fopen(config, "r");
 	FILE *stdInput = fopen(inputFile, "w"), *stdOutput = fopen(outputFile, "w");
+	FILE *stdOutputFileDescriptor = fopen(stdOutputFile, "r");
 	for(i = 0; i < numApps; i++){
 		configFile = fopen(config, "r");
 		fprintf(stdout, "%s:", progList[i]);
@@ -125,7 +126,7 @@ int main(int argc, char** argv){
 						//wait for child to be done, and compare
 						waitpid(pID, &status, 0);
 						//compare
-						outputCompare = compareFiles(stdOutput, outputFile, stdOutputFile);
+						outputCompare = compareFiles(stdOutput, outputFile, stdOutputFileDescriptor, stdOutputFile);
 						if(outputCompare == 0){
 							fprintf(stdout, " %d", 1);
 						}
@@ -149,7 +150,7 @@ int main(int argc, char** argv){
 	if(configOn != 1){
 		remove(config);
 	}
-
+	fclose(stdOutputFileDescriptor);
 	fclose(stdInput);
 	fclose(stdOutput);
 	remove(inputFile);
@@ -160,9 +161,9 @@ int main(int argc, char** argv){
 
 
 //Compare 2 files
-int compareFiles(FILE *fileLinkOne, char* fileOne, char *fileTwo){
+int compareFiles(FILE *fileLinkOne, char* fileOne, FILE *fileLinkTwo, char *fileTwo){
 	fileLinkOne = freopen(fileOne, "r", fileLinkOne);
-	FILE *fileLinkTwo = fopen(fileTwo, "r");
+	fileLinkTwo = freopen(fileTwo, "r", fileLinkTwo);
 	char tmp1[255], tmp2[255];
 	char *readOne, *readTwo;
 	readOne = fgets(tmp1, 255, fileLinkOne);
@@ -177,6 +178,5 @@ int compareFiles(FILE *fileLinkOne, char* fileOne, char *fileTwo){
 	if(readOne != NULL || readTwo != NULL){
 		return 1;
 	}
-	fclose(fileLinkTwo);
 	return 0;
 }
