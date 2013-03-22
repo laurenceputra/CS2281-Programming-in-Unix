@@ -55,7 +55,7 @@ int main(int argc, char** argv){
 	}
 	FILE *configFile = fopen(config, "r");
 	FILE *stdInput = fopen(inputFile, "w"), *stdOutput = fopen(outputFile, "w");
-	FILE *stdOutputFileDescriptor = fopen(stdOutputFile, "r");
+	FILE *stdOutputFileDescriptor = fopen(stdOutputFile, "w");
 	for(i = 0; i < numApps; i++){
 		configFile = fopen(config, "r");
 		fprintf(stdout, "%s:", progList[i]);
@@ -144,7 +144,7 @@ int main(int argc, char** argv){
 			}
 		}
 		fprintf(stdout, "\n");
-		//remove(stdOutputFile);
+		
 	}
 	fclose(configFile);
 	if(configOn != 1){
@@ -154,7 +154,8 @@ int main(int argc, char** argv){
 	fclose(stdInput);
 	fclose(stdOutput);
 	remove(inputFile);
-	//remove(outputFile);
+	remove(outputFile);
+	remove(stdOutputFile);
 
 	return status;
 }
@@ -163,6 +164,7 @@ int main(int argc, char** argv){
 //Compare 2 files
 int compareFiles(FILE *fileLinkOne, char* fileOne, FILE *fileLinkTwo, char *fileTwo){
 	fileLinkOne = freopen(fileOne, "r", fileLinkOne);
+	//segfaults when this is opened
 	fileLinkTwo = freopen(fileTwo, "r", fileLinkTwo);
 	char tmp1[255], tmp2[255];
 	char *readOne, *readTwo;
