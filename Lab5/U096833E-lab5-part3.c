@@ -4,15 +4,17 @@
 #include <unistd.h>
 #include <stdlib.h>
 #include <string.h>
+#include <time.h>
 #include <sys/wait.h>
 
 #define BUFFERSIZE 256
-
+#define TIMEINTERVAL 1000
 int compareFiles(FILE *fileLinkOne, char* fileOne, FILE *fileLinkTwo, char *fileTwo);
 
 int main(int argc, char** argv){
 	int option, configOn = 0, inputStart = 0, outputStart = 0, newline = 0, numArgs = 0, numApps = 0, i;
-	int outputCompare = 0, status, fileFailCounter, waitPidStatus, childStatus, timePassed;
+	int outputCompare = 0, status, fileFailCounter, waitPidStatus, childStatus, timePassed, timeFlag = 0, timeoutLimit;
+	long long timeStarted;
 	char *prog, *config = NULL;
 	char *stdOutputFile = "__stdOutputFile__", *inputFile = "__inputFile__", *outputFile = "__outputFile__";
 	char *delimiter, *tmpDelimiter;
@@ -20,14 +22,18 @@ int main(int argc, char** argv){
 	char tmp[BUFFERSIZE], compare[10];
 	pid_t pID = 0;
 
-	while((option = getopt(argc, argv, "c:")) != -1){
+	while((option = getopt(argc, argv, "c:t:")) != -1){
 		switch(option){
 			case 'c':
 				numArgs++;
 				configOn = 1;
 				config = optarg;
 				break;
-
+			case 't':
+				numArgs++;
+				timeFlag = 1;
+				timeoutLimit = atoi(optarg);
+				break;
 			default:
 				fprintf(stderr, "Invalid Option: %c \nUsage: %s [-c testconfig] [prog ...] \n", option, argv[0]);
 				exit(EXIT_FAILURE);
@@ -55,7 +61,7 @@ int main(int argc, char** argv){
 	}
 	FILE *configFile = fopen(config, "r");
 	FILE *stdInput = fopen(inputFile, "w"), *stdOutput = fopen(outputFile, "w");
-	FILE *stdOutputFileDescriptor = fopen(stdOutputFile, "r");
+	FILE *stdOutputFileDescriptor = fopen(stdOutputFile, "w");
 	for(i = 0; i < numApps; i++){
 		configFile = fopen(config, "r");
 		fprintf(stdout, "%s:", progList[i]);
@@ -111,6 +117,10 @@ int main(int argc, char** argv){
 				if(strcmp(tmp, delimiter) == 0){
 					outputStart = 0;
 					//start running
+					timeStarted = time(NULL);
+					while(timeStarted == time(NULL)){
+						continue;
+					}
 					pID = fork();
 					if(pID == 0){
 						//child process does stuff
@@ -124,18 +134,28 @@ int main(int argc, char** argv){
 					}
 					else{
 						//wait for child to be done, and compare
-						timePassed = 0;
-						waitPidStatus = waitpid(pID, &childStatus, WNOHANG);
-						while(timePassed < timeoutLimit && waitPidStatus == 0){
-							timePassed++;
-							sleep(1);
-							waitPidStatus = waitpid(pID, &childStatus, WNOHANG);
+						if(timeFlag == 0){
+							waitpid(pID, &status, 0);
+							//compare
+							outputCompare = compareFiles(stdOutput, outputFile, stdOutputFileDescriptor, stdOutputFile);
 						}
-						if(waitPidStatus == 0){
-							kill(pID, SIGABRT);
+						else{
+							timeStarted = time(NULL);
+							waitPidStatus = waitpid(pID, &childStatus, WNOHANG);
+							while(timeStarted + timeoutLimit > time(NULL) && waitPidStatus == 0){
+								usleep(TIMEINTERVAL);
+								waitPidStatus = waitpid(pID, &childStatus, WNOHANG);
+							}
+							if(waitPidStatus == 0){
+								kill(pID, SIGKILL);
+								outputCompare = 1;
+								printf("%s\n", "KILLED");
+							}
+							else{
+								outputCompare = compareFiles(stdOutput, outputFile, stdOutputFileDescriptor, stdOutputFile);
+							}
 						}
 						//compare
-						outputCompare = compareFiles(stdOutput, outputFile, stdOutputFileDescriptor, stdOutputFile);
 						if(outputCompare == 0){
 							fprintf(stdout, " %d", 1);
 						}
