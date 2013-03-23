@@ -21,3 +21,11 @@ output*
 *.zip
 
 sample
+
+__inputFile__
+__outputFile__
+__stdOutputFile__
+tmpConfig
+temp
+long_running
+text.c
