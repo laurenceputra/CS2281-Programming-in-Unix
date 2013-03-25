@@ -117,9 +117,12 @@ int main(int argc, char** argv){
 				if(strcmp(tmp, delimiter) == 0){
 					outputStart = 0;
 					//start running
-					timeStarted = time(NULL);
-					while(timeStarted == time(NULL)){
-						continue;
+					//this part is to ensure that the time taken is near the start of the second, and not the end.
+					if(timeFlag == 1){
+						timeStarted = time(NULL);
+						while(timeStarted == time(NULL)){
+							continue;
+						}	
 					}
 					pID = fork();
 					if(pID == 0){
@@ -149,7 +152,6 @@ int main(int argc, char** argv){
 							if(waitPidStatus == 0){
 								kill(pID, SIGKILL);
 								outputCompare = 1;
-								printf("%s\n", "KILLED");
 							}
 							else{
 								outputCompare = compareFiles(stdOutput, outputFile, stdOutputFileDescriptor, stdOutputFile);

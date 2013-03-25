@@ -1,6 +1,0 @@
-0: /bin/ls
-0: /bin/echo a test
-0: /bin/true
-1: /bin/false
-0: true
-1: false
