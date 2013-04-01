@@ -1,0 +1,319 @@
+<html>
+<style>
+.code {
+	background-color:#eeeeee;
+	padding: 5 5 5 5;
+}
+</style>
+<h1>CS2281 Lab 6: Listing Processes and Users (Graded)</h1>
+
+<p>
+We have investigated 3 kinds of C programs (all of which are useful):
+<ul>
+<li> pure C programs (e.g. Lab 1);
+<li> C programs which use Unix but could be modified suitably
+to work on other non-Unix systems (e.g. <tt>U-26-cp-fd.c</tt> and
+to a smaller extent, Lab 3); and
+<li> C programs which are designed specifically for Unix 
+(e.g. <tt>U-16-mysh1.c</tt> and this lab).
+</ul>
+C programs in the third class, are usually what one might think of as
+<i>system programs</i> and may need to be tailored for a particular 
+version of Unix.
+They make use of Unix system calls and not just the C libraries.
+Lab 6 focuses on this kind of program. The objective is to
+show how the <tt>ps</tt> command works and 
+<b>how you can write your own</b>. 
+
+<p>
+Please note that Lab 6 is less difficult than it seems.
+Start with Part 1 so that you know how to deal with <tt>/proc</tt>.
+What you may find is that it seems difficult because you will 
+have to digest various complex man pages. 
+The value of Lab 6 is that it gives flavour of what
+a realistic system program entails.
+If your Lab is fully working, then you will understand that a 
+program of the 3rd time, a system program,
+requires various Unix and system details to be sorted out (in the end
+may not be so difficult). On the other hand, if the Lab is partly working,
+you will still get a better understanding of system programming.
+In any case, <b>you should aim to get Part 1 working</b>.
+<p>
+This lab gets you to look carefully at some Unix man pages. You will also get
+to make use of some of the example code given during lectures.
+In the lab, you will also start encountering details of the real system, some of
+which may be not so easy to understand, in such cases, experiments in
+the spirit of the sample programs can be used to understand 
+what it does and how to use it.
+<b>An important takeaway lesson from CS2281 is to employ simple test programs
+to explore something on the system.
+</b>
+There may be details which are not very precisely defined in 
+the man pages.
+One approach is to read the system source code but that may be a
+non-trivial exercise.
+It can be much easier instead to do some tests on the system
+which can answer the question.
+<p>
+You might think that finding out information about processes is
+difficult involve some "<i>kernel hacking</i>". Traditionally, programs like
+<tt>ps</tt> were implemented that way.
+However, in modern Unix, one can access the information needed for <tt>ps</tt>
+from the <tt>/proc</tt> filesystem. Take note that the
+details and structure of <tt>/proc</tt> varies between Unix, e.g. Solaris
+is quite different from Linux.
+<p>
+We already saw in Lecture 9 that
+the <tt>/proc</tt> filesystem in Solaris is a kind of "virtual filesystem"
+which gives access to the state of each process.
+(<i>Linux is similar but the details are completely different</i>).
+Every process in the system has a directory in <tt>/proc</tt>.
+Look up the process ID (PID) of your shell (using <tt>ps</tt>).
+Look at the files in </tt>/proc</tt>, it consists of numbered directories
+where each directory corresponds to the pid of a process. 
+Compare the files in <tt>ls /proc</tt> with the PIDs from <tt>ps -e</tt>.
+Inside each directory, there are various files which either give information
+about certain aspect of the process (or can be used to control the process
+but we will not cover the control aspect).
+<p>
+For this lab, you will only need the file <tt>psinfo</tt> which contains
+the information needed by <tt>ps</tt>.
+The relevant system include file which describes the structures in <tt>/proc</tt> is 
+<tt>/usr/include/procfs.h</tt>
+(to include in your C program: <tt>#include &lt;procfs.h&gt;</tt>).
+The details of <tt>/proc</tt> are described in <tt>proc(4)</tt> of the man pages,
+i.e. <tt>man -s 4 proc</tt>. 
+Read the <i>DESCRIPTION</i> portion of the man page for <tt>proc(4)</tt>
+and the <i>DIRECTORY STRUCTURE</i> section.
+The main information you want is
+the documentation for  the <tt>psinfo</tt> file and struct.
+The <tt>psinfo</tt> file is a file containing
+the contents of a <tt>psinfo</tt> struct, thus, the data in the file is in binary,
+e.g. in the L-18-* examples, we see how to read and write a struct stored in
+a file. 
+
+<p>
+You may find that the <tt>/proc</tt> man page contains a lot of information
+which you do not fully understand. 
+The way to deal with information overload is
+to mainly focus on the relevant information
+about <tt>psinfo</tt>. The motivation of the Lab is to get some experience with
+writing a real system program. Usually several (complex) man pages
+may need to be consulted but not all aspects of the man page need to
+be understood at once, only the relevant portion.
+Again, when in doubt, write some test programs to understand what
+is going on. This is part of the learning process which you should get
+used to if you are going to write real Unix programs (now or in the future). 
+Finding and understanding the system details is also important
+as there are points of differences between
+various flavors of Unix.
+<p>
+If you have difficulty understanding 
+<tt>/proc/<i>pid</i>/psinfo</tt> where <i>pid</i> is an existing
+process ID, I suggest you first write your own test program 
+which reads and prints out some fields in
+<tt>/proc/<i>pid</i>/psinfo</tt> for a given pid.
+This will be more instructive than trying to understand the man page alone.
+(Note the <i>italics</i> above, if the PID of a process is 123 
+then <tt>/proc/123</tt>.  
+There is no file <tt>/proc/pid</tt>).
+
+<p>
+<strong>
+General assumptions</strong>:
+<br>
+Assume for simplicity that there are at most 10000 users in the system. 
+Note that this does not mean that the numerical value
+of the UIDs are numbered consecutively from 1.
+You can also assume that there are at most 50000 processes in total
+at any one time on sunfire.
+
+<p>
+<h2>Part 1: a basic <tt>ps</tt> (40 marks)</h2>
+<p>
+Write a C program <tt>lab6-part1.c</tt> with the following usage
+<p>
+<b>Usage:</b> <tt>part1</tt>
+
+<p>
+<tt>part1</tt> doesn't take any arguments. 
+Part 1 will print the user name (the name of the user owning the process,
+e.g. cs2281), process identifier (PID), executable name (FNAME)
+and start time of the process (STIME).
+This is a subset of what <tt>ps -ef</tt> gives and includes
+the UID, PID, part of CMD and STIME columns from <tt>ps</tt>.
+For example, running <tt>ps -ef</tt> could give output which looks
+something like:
+<blockquote>
+<pre class="code">
+     UID   PID  PPID   C    STIME TTY         TIME CMD
+    root  3563  3563   0   Mar 09 ?           0:00 zsched
+  cs2281  4210  4149   0 23:04:19 pts/134     0:00 -bash
+</pre>
+</blockquote>
+The result from <tt>ps</tt> tells you the
+following information aboout each process:
+<ul>
+<li> UID=root, PID=3563, FNAME=zsched
+<li> UID=cs2281, PID=4210, FNAME=bash
+</ul>
+The FNAME is the name of the executable which is usually the first argument
+displayed in CMD (however, sometimes the command has a dash in front to show
+the login shell as illustrated in the example).
+
+<p>
+Your program should print the UID, PID, FNAME and STIME information for 
+every processes. The following example shows the output for two processes:
+<blockquote>
+<pre class="code">
+     UID   PID            FNAME STIME
+    root  3563           zsched Fri Mar  9 04:35:14 2012
+  cs2281  4210             bash Thu Mar 22 23:04:18 2012
+</pre>
+</blockquote>
+The <tt>printf</tt> string format used in the output above is: 
+<b><tt>"%8s %5d %16s %.24s"</tt></b>.
+The time in the STIME column is in the time format given by <tt>ctime(3C)</tt>
+(note that the STIME is output differently from the <tt>ps</tt> example).
+A header is printed as the first line as shown above and
+is aligned with the corresponding columns.
+Processes may be printed out in any order of the PIDs.
+<p>
+<strong>Hints</strong><br/>
+<ul>
+<li> 
+While you can read the contents of a directory, e.g. reading <tt>/proc</tt>, 
+it will be simpler to
+simply use the <tt>ls</tt> program. You can invoke it using the 
+<tt>system(3C)</tt> library function, e.g. 
+<tt>U-2-myscript.c</tt>. You can redirect the output of <tt>ls</tt>
+into a temporary file and read it from your code.
+<li> You will find that it may be useful to have finished Lab 5 although
+it is possible to also do Lab 6 concurrently with Lab 5
+<li>
+The file <tt>/proc/<i>pid</i>/psinfo</tt> can be read either using
+the stdio libraries or directly using system calls.
+I suggest it can be easier to use stdio but if you wish, you could read
+ahead in the slides and code examples and use system calls.
+Doing both ways is also instructive (though you should only submit one version).
+<li>
+You will need the header file: <br>
+<blockquote>
+<tt>#include &lt;procfs.h&gt;</tt> 
+</blockquote>
+The actual file with the declarations is <tt>/usr/include/sys/procfs.h</tt>
+<li>
+You can get the program name from the field <tt>char pr_fname[PRFNSZ]</tt>
+in <tt>struct psinfo</tt>.
+Similarly the PID can be found there.
+The starting time is the <tt>pr_start</tt> field,
+its type is the same as as a <tt>struct timeval</tt> (the details
+can be found as <tt>struct timespec</tt> in <tt>/usr/include/sys/time_impl.h</tt>). You will need the field <tt>tv_sec</tt> which gives the number of seconds
+since the Unix Epoch begun (1 Jan 1970 UTC).
+<li>
+You may need to <tt>#include</tt> various header files, 
+e.g. <tt>&lt;sys/types.h></tt> and <tt>&lt;time.h></tt>.
+<li>
+You can check your output by comparing with the information
+from <tt>ps</tt>. Note that as processes may be starting and terminating,
+the processes could be different when <tt>ps</tt> and
+<tt>part1</tt> are run.
+</ul>
+
+<h2>Part 2: summarizing the user and process information (60 marks + 10 bonus marks)</h2>
+<p>
+Write a C program <tt>lab6-part2.c</tt> with the following usage
+<p>
+<b>Usage:</b> <tt>part2 [-p] [-n] [-u] </tt>
+<p>
+Unlike Part 1, <b>only</b> processes which are <b>login shells</b> 
+will be output.
+Thus, <tt>zched</tt> from the Part 1 example is omitted.
+<p>
+The options refer to:
+<ul>
+	<li> <tt>-p</tt>: print the PID column
+	<li> <tt>-u</tt>: print a unique set of UID. This option disables
+	other options so that the other options are ignored (there is no error
+	if there are other options, just that they are ignored)
+	<li> <tt>-n</tt>: (<b>bonus part</b>) print the N column
+	which counts the total number of processes with the particular
+	login shell as an ancestor. This option <b>only</b> needs
+	to be implemented if you are aiming for the bonus marks.
+</ul>
+The order of columns (if it is output) is UID, PID, N, FNAME, STIME
+where the format of UID, PID, FNAME and STIME is as in Part 1.
+The N and PID columns should only be printed if the corresponding
+option is specified on the command line. 
+The format of the N column is <tt>"%3d"</tt>.
+The <tt>-u</tt> option only outputs the UID column without any others.
+
+<p>
+For example, if the command line is <tt>part2 -np</tt>, the output could
+look like: (note that options can be combined in any order,
+so equivalent commands are: <tt>part2 -p -n</tt> or <tt>part2 -pn</tt>)
+<blockquote>
+<pre class="code">
+     UID   PID   N           FNAME STIME
+  cs2281  4210   2           bash Thu Mar 22 23:04:18 2012
+</pre>
+</blockquote>
+In this example, <tt>cs2281</tt> is using the <tt>bash</tt> shell
+and it happens to have one child process, e.g. <tt>vim</tt>.
+<p>
+In order, to determine the login shell, the environment variable 
+<tt>MYSHELLS</tt> gives a list of shells separated by a colon, e.g.
+<tt>MYSHELLS=bash:sh</tt> will recognize <tt>bash</tt> and <tt>sh</tt>
+as valid shells.
+If <tt>MYSHELLS</tt> is not defined, the default is just <tt>tcsh:bash</tt>.
+<p>
+The <tt>-u</tt> option disables other options. If <tt>-u</tt> is given,
+a unique list of users will be printed as the UID column (with header) and
+no other columns.
+This means that a user logged in multiple times will only be printed once.
+<p>
+<strong>Hints</strong><br/>
+<ul>
+	<li> A user can have multiple login shells. You can assume that a
+	process is the login shell is if the first character of the 
+	command line is a dash
+	and the FNAME is one of the approved shells from <tt>MYSHELLS</tt>
+	(or the default). The command line can be found in the
+	<tt>ps_psargs</tt> field in <tt>psinfo</tt>.
+	<li> Obviously, one way of testing is to login multiple times 
+	and start various numbers of processes.
+	<li> Any process whose ancestor is a login shell counts towards
+	the number of processes with the <tt>-n</tt> option. Thus, the shell
+	is not necessarily the immediate parent process.
+	<li> In <tt>bash</tt>, the following example shows how
+	to create an environment variable
+	which will be exported to any child process:
+<pre class="code">
+$ MYSHELLS=bash:sh:tcsh
+$ export MYSHELLS
+</pre>
+This creates a shell variable <tt>MYSHELLS</tt> and the <tt>export</tt> command
+which is internal to <tt>bash</tt> marks that variable as being exported
+as an environment variable to any child process of <tt>bash</tt>.
+<li> You may find it useful to create your own arrays of appropriate C <tt>struct</tt> to store information about the processes, users, etc.
+</ul>
+
+<h2>Grading + Submission Summary</h2>
+
+<b>C files submitted must compile on Sunfire to be graded.
+You should add in a comment block to each file at the start</b>: 
+Name, Matric, Email.
+<p>
+Submit the following in a single zip file with the filename
+<i>yourmatricno-</i>lab6.zip, e.g. if your matric number is U123X, then
+U123X-lab6.zip. Note the user of Uppercase in the matric number.
+(Make sure your your zip file is in correct ZIP format, i.e. test with 
+<tt>unzip</tt> on Sunfire, and you should not submit individual C files).
+<ul>
+<li> Part 1: <i>yourmatricno</i>-lab6-part1.c</t>, 40 marks
+<li> Part 2: <i>yourmatricno</i>-lab6-part2.c</t>, 60 + 10 bonus marks
+</ul>
+
+</body>
+</html>
+
