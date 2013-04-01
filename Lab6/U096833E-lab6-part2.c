@@ -70,7 +70,6 @@ int main(int argc, char *argv[]){
 				if(optUid == 1){
 					if(checkIfUidExist(procInfo.pr_uid, uid, numUid) == 0){
 						numUid++;
-						printf("numUid: %d\n", numUid);
 						uid = realloc(uid, numUid * sizeof(int));
 						uid[numUid - 1] = procInfo.pr_uid;
 						userInfo = getpwuid(procInfo.pr_uid);
