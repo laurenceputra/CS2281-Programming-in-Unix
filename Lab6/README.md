@@ -46,8 +46,7 @@ can be used to control the process but we will not cover the control aspect).
 
 For this lab, you will only need the file psinfo which contains the
 information needed by ps. The relevant system include file which describes the
-structures in /proc is /usr/include/procfs.h (to include in your C program:
-#include <procfs.h>). The details of /proc are described in proc(4) of the man
+structures in /proc is /usr/include/procfs.h (to include in your C program: #include <procfs.h>). The details of /proc are described in proc(4) of the man
 pages, i.e. man -s 4 proc. Read the _DESCRIPTION_ portion of the man page for
 proc(4) and the _DIRECTORY STRUCTURE_ section. The main information you want
 is the documentation for the psinfo file and struct. The psinfo file is a file
