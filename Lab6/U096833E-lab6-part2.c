@@ -15,7 +15,7 @@ int checkIfUidExist(int newUid, int *uid, int numUid);
 
 int main(int argc, char *argv[]){
 	int optPid = 0, optUid = 0, optN = 0, option;
-	while((option = getopt(argc, argv, "p::n::u::")) != -1){
+	while((option = getopt(argc, argv, "pnu")) != -1){
 		switch(option){
 			case 'p':
 				optPid = 1;
