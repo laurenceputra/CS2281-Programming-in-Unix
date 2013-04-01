@@ -8,7 +8,7 @@
 #include <dirent.h>
 #include <string.h>
 #include <pwd.h>
-int main(){
+int main(int argc, char *argv[]){
 	DIR *proc = opendir("/proc");
 	if(proc == NULL){
 		printf("Unable to open /proc directory\n");

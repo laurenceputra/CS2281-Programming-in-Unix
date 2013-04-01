@@ -8,12 +8,13 @@
 #include <dirent.h>
 #include <string.h>
 #include <pwd.h>
-
+#include <unistd.h>
+#include <stdlib.h>
 
 int checkIfUidExist(int newUid, int *uid, int numUid);
 
-int main(){
-	int optPid = 0, optUid = 0, optN = 0;
+int main(int argc, char *argv[]){
+	int optPid = 0, optUid = 0, optN = 0, option;
 	while((option = getopt(argc, argv, "p::n::u:")) != -1){
 		switch(option){
 			case 'p':
