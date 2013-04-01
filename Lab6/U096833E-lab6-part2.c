@@ -38,7 +38,7 @@ int main(int argc, char *argv[]){
 		return 1;
 	}
 	struct dirent *file;
-	char *filename;
+	char filename[300];
 	FILE *procFile;
 	psinfo_t procInfo;
 	struct passwd *userInfo;
