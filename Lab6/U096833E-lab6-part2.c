@@ -75,6 +75,10 @@ int main(int argc, char *argv[]){
 						userInfo = getpwuid(procInfo.pr_uid);
 						printf("%8s\n", userInfo->pw_name);
 					}
+					else{
+						userInfo = getpwuid(procInfo.pr_uid);
+						printf("Clash Found! %s\n", userInfo->pw_name);
+					}
 				}
 				else{
 					userInfo = getpwuid(procInfo.pr_uid);
