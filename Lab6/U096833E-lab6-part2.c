@@ -72,7 +72,7 @@ int main(int argc, char *argv[]){
 						numUid++;
 						printf("numUid: %d\n", numUid);
 						uid = realloc(uid, numUid * sizeof(int));
-						uid[numUid] = procInfo.pr_uid;
+						uid[numUid - 1] = procInfo.pr_uid;
 						userInfo = getpwuid(procInfo.pr_uid);
 						printf("%8s\n", userInfo->pw_name);
 					}
