@@ -61,7 +61,6 @@ int main(int argc, char *argv[]){
 	}
 	while((file = readdir(proc)) != NULL){
 		//process only actual files
-		printf("%s\n", file->d_name);
 		if(file->d_name[0] != '.'){
 			sprintf(filename, "/proc/%s/psinfo", file->d_name);
 			procFile = fopen(filename, "r");
