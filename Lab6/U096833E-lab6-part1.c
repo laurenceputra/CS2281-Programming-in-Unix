@@ -23,7 +23,7 @@ int main(){
 	while((file = readdir(proc)) != NULL){
 		//process only actual files
 		if(file->d_name[0] != '.'){
-			sprinf(filename, "/proc/%s/psinfo", file->d_name);
+			sprintf(filename, "/proc/%s/psinfo", file->d_name);
 			procFile = fopen(filename, "r");
 			//process only files you can open
 			if(procFile != NULL){
