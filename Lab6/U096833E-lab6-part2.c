@@ -94,7 +94,6 @@ int main(int argc, char *argv[]){
 int checkIfUidExist(int newUid, int *uid, int numUid){
 	int i;
 	for(i = 0; i < numUid; i++){
-		printf("%d == %d\n", uid[i], newUid);
 		if(uid[i] == newUid){
 			return 1;
 		}
