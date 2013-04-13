@@ -1,7 +1,8 @@
 #!/bin/bash
-for (( c=0; c<$#; c++))
+for file in "$@"
 do
-	matric=`basename $1 .zip`
-	unzip $1 -d $matric
-	ls $matric | grep -v -e "^[A-Z][0-9]\{1,\}[A-Z][\-][task]" | xargs -n 1 echo
+	matric=`basename $file .zip`
+	unzip -j $1 -d $matric
+	ls $matric | grep -v "^[A-Z][0-9]\{1,\}[A-Z][\-]task[1-9][0-9]\{0,\}.c$" | xargs -n 1 rm
+	shift
 done	
