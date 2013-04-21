@@ -1,3 +1,6 @@
+# Name: Laurence Putra
+# Matric: U096833E
+# Email: laurenceputra@gmail.com
 #!/bin/bash
 for zipfile in "$@"
 do

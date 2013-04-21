@@ -1,3 +1,6 @@
+# Name: Laurence Putra
+# Matric: U096833E
+# Email: laurenceputra@gmail.com
 #!/bin/bash
 directories=`ls -d */`
 check=`echo $dir | grep "such file or directory" | wc -l`
