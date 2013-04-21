@@ -12,7 +12,7 @@ if [ $check -eq 0 ]
 			then
 			for file in $files
 			do
-				check=`grep "^/* Matric: $matric \*\/$" $dir$file | wc -l`
+				check=`grep "/* Matric: $matric \*\/" $dir$file | wc -l`
 				if [ $check -eq 0 ]
 					then
 					echo "$file"
