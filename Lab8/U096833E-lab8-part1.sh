@@ -10,5 +10,5 @@ do
 	do
 		list+=$file" "
 	done
-	unzip -ojq $1 $list -d $matric
+	unzip -ojq $zipfile $list -d $matric
 done	
