@@ -3,7 +3,7 @@ for zipfile in "$@"
 do
 	list=""
 	matric=`basename $zipfile .zip`
-	for file in `unzip -l $zipfile | tr -s ' ' '\n' | grep "[A-Z][0-9]\{0,\}\-task[1-9][0-9]\{0,\}.c$" | cut -d ' ' -f 12`
+	for file in `unzip -l $zipfile | tr -s ' ' '\n' | grep "[A-Z][0-9]\{0,\}\-task[1-9][0-9]\{0,\}.c$"`
 	do
 		list+=$file" "
 	done
